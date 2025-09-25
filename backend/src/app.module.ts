@@ -5,6 +5,7 @@ import { Shop } from './shops/shop.entity';
 import { DailyRecord } from './daily-records/daily-record.entity';
 import { ShopsModule } from './shops/shops.module';
 import { AuthModule } from './auth/auth.module';
+import { DailyRecordsModule } from './daily-records/daily-records.module';
 
 @Module({
   imports: [
@@ -30,6 +31,7 @@ import { AuthModule } from './auth/auth.module';
     TypeOrmModule.forFeature([Shop, DailyRecord]),
     ShopsModule,
     AuthModule,
+    DailyRecordsModule,
   ],
   controllers: [],
   providers: [],

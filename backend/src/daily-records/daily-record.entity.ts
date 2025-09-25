@@ -9,23 +9,23 @@ export class DailyRecord {
   @ManyToOne(() => Shop, (shop) => shop.dailyRecords, { onDelete: 'CASCADE' })
   shop: Shop;
 
-  @Column('decimal', { precision: 12, scale: 2, default: 0 })
-  revenueMainWithMargin: string;
+  @Column('bigint', { default: 0 })
+  revenueMainWithMargin: number;
 
-  @Column('decimal', { precision: 12, scale: 2, default: 0 })
-  revenueMainWithoutMargin: string;
+  @Column('bigint', { default: 0 })
+  revenueMainWithoutMargin: number;
 
-  @Column('decimal', { precision: 12, scale: 2, default: 0 })
-  revenueOrderWithMargin: string;
+  @Column('bigint', { default: 0 })
+  revenueOrderWithMargin: number;
 
-  @Column('decimal', { precision: 12, scale: 2, default: 0 })
-  revenueOrderWithoutMargin: string;
+  @Column('bigint', { default: 0 })
+  revenueOrderWithoutMargin: number;
 
-  @Column('decimal', { precision: 12, scale: 2, default: 0 })
-  mainStockValue: string;
+  @Column('bigint', { default: 0 })
+  mainStockValue: number;
 
-  @Column('decimal', { precision: 12, scale: 2, default: 0 })
-  orderStockValue: string;
+  @Column('bigint', { default: 0 })
+  orderStockValue: number;
 
   @CreateDateColumn()
   createdAt: Date;
