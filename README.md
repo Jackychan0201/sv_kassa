@@ -1,1 +1,1 @@
-# sv_kassa
+# SV KASSA - final internship project
