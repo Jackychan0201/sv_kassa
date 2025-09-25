@@ -1,5 +1,11 @@
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, OneToMany } from 'typeorm';
 import { DailyRecord } from '../daily-records/daily-record.entity';
+import { Exclude } from 'class-transformer';
+
+export enum ShopRole {
+  CEO = 'CEO',
+  SHOP = 'SHOP',
+}
 
 @Entity('shops')
 export class Shop {
@@ -13,7 +19,15 @@ export class Shop {
   email: string;
 
   @Column()
+  @Exclude()
   password: string;
+
+  @Column({
+    type: 'enum',
+    enum: ShopRole,
+    default: ShopRole.SHOP,
+  })
+  role: ShopRole;
 
   @OneToMany(() => DailyRecord, (record) => record.shop)
   dailyRecords: DailyRecord[];

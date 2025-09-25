@@ -1,8 +1,11 @@
-import { Controller, Post, Body, Get } from '@nestjs/common';
+import { Controller, Post, Body, Get, UseGuards } from '@nestjs/common';
 import { ShopsService } from './shops.service';
-import { Shop } from './shop.entity';
+import { Shop, ShopRole } from './shop.entity';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { CreateShopDto } from './dto/create-shop.dto';
+import { JwtAuthGuard } from '../auth/auth.guard';
+import { RolesGuard } from '../auth/roles.guard';
+import { Roles } from '../auth/roles.decorator';
 
 @ApiTags('shops')
 @Controller('shops')
@@ -12,6 +15,8 @@ export class ShopsController {
   @Post()
   @ApiOperation({ summary: 'Create a new shop' })
   @ApiResponse({ status: 201, description: 'Shop created successfully.', type: Shop })
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(ShopRole.CEO)  
   async create(@Body() dto: CreateShopDto): Promise<Shop> {
     return this.shopsService.createShop(dto);
   }

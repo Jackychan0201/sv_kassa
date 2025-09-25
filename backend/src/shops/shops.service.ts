@@ -1,7 +1,7 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Shop } from './shop.entity';
+import { Shop, ShopRole } from './shop.entity';
 import * as bcrypt from 'bcrypt';
 import { CreateShopDto } from './dto/create-shop.dto';
 
@@ -24,6 +24,7 @@ export class ShopsService {
       name: dto.name,
       email: dto.email,
       password: hashedPassword,
+      role: dto.role || ShopRole.SHOP,
     });
 
     const savedShop = this.shopRepository.save(shop);
@@ -33,16 +34,24 @@ export class ShopsService {
   }
 
   findAll(): Promise<Shop[]> {
-    return this.shopRepository.find({select: ['id', 'name', 'email', 'createdAt', 'updatedAt']});
+    return this.shopRepository.find({select: ['id', 'name', 'email', 'role', 'createdAt', 'updatedAt']});
   }
 
   async findOne(id: string): Promise<Shop> {
     const shop = await this.shopRepository.findOne({
          where: { id },
-         select: ['id', 'name', 'email', 'createdAt', 'updatedAt'], 
+         select: ['id', 'name', 'email', 'role', 'createdAt', 'updatedAt'], 
         });
     if (!shop) {
       throw new Error(`Shop with id ${id} not found`);
+    }
+    return shop;
+  }
+
+  async findByEmail(email: string): Promise<Shop> {
+    const shop = await this.shopRepository.findOne({ where: { email } });
+    if (!shop) {
+      throw new Error(`Shop with email ${email} not found`);
     }
     return shop;
   }

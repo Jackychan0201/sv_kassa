@@ -4,6 +4,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { Shop } from './shops/shop.entity';
 import { DailyRecord } from './daily-records/daily-record.entity';
 import { ShopsModule } from './shops/shops.module';
+import { AuthModule } from './auth/auth.module';
 
 @Module({
   imports: [
@@ -28,6 +29,7 @@ import { ShopsModule } from './shops/shops.module';
     }),
     TypeOrmModule.forFeature([Shop, DailyRecord]),
     ShopsModule,
+    AuthModule,
   ],
   controllers: [],
   providers: [],
