@@ -3,6 +3,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Shop } from './shops/shop.entity';
 import { DailyRecord } from './daily-records/daily-record.entity';
+import { ShopsModule } from './shops/shops.module';
 
 @Module({
   imports: [
@@ -26,6 +27,7 @@ import { DailyRecord } from './daily-records/daily-record.entity';
       }),
     }),
     TypeOrmModule.forFeature([Shop, DailyRecord]),
+    ShopsModule,
   ],
   controllers: [],
   providers: [],
