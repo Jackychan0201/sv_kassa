@@ -1,8 +1,12 @@
-import { Controller, Post, Body, Res } from '@nestjs/common';
+import { Controller, Post, Body, Res, Req, UseGuards } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import type { Response } from 'express';
+import type { Request } from 'express';
+import { UnauthorizedException } from '@nestjs/common';
 import { ApiTags, ApiOperation } from '@nestjs/swagger';
 import { LoginDto } from './dto/login.dto';
+import { JwtShop } from './jwt-shop.type';
+import { JwtAuthGuard } from './auth.guard';
 
 @ApiTags('auth')
 @Controller('auth')
@@ -24,8 +28,10 @@ export class AuthController {
   }
 
   @Post('logout')
+  @UseGuards(JwtAuthGuard)
   @ApiOperation({ summary: 'Logout the current shop' })
   async logout(@Res({ passthrough: true }) res: Response) {
+
     res.clearCookie('Authentication', {
       httpOnly: true,
       sameSite: 'lax',

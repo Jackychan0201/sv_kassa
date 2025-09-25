@@ -1,9 +1,10 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Shop, ShopRole } from './shop.entity';
 import * as bcrypt from 'bcrypt';
 import { CreateShopDto } from './dto/create-shop.dto';
+import { UpdateShopDto } from './dto/update-shop.dto';
 
 @Injectable()
 export class ShopsService {
@@ -29,9 +30,37 @@ export class ShopsService {
 
     const savedShop = this.shopRepository.save(shop);
     const { password, ...result } = await savedShop;
-
     return result as Shop;
   }
+
+  async updateShop(id: string, dto: UpdateShopDto): Promise<Shop> {
+    const shop = await this.shopRepository.findOne({ where: { id } });
+    if (!shop) {
+      throw new NotFoundException(`Shop with id ${id} not found`);
+    }
+
+    if (dto.password) {
+      shop.password = await bcrypt.hash(dto.password, 10);
+    }
+    if (dto.name) {
+      shop.name = dto.name;
+    }
+    if (dto.role) {
+      shop.role = dto.role;
+    }
+
+    const updatedShop = this.shopRepository.save(shop);
+    const { password, ...result } = await updatedShop;
+    return result as Shop;
+  }
+
+  async deleteShop(id: string): Promise<void> {
+    const result = await this.shopRepository.delete(id);
+    if (result.affected === 0) {
+      throw new NotFoundException(`Shop with id ${id} not found`);
+    }
+  }
+
 
   findAll(): Promise<Shop[]> {
     return this.shopRepository.find({select: ['id', 'name', 'email', 'role', 'createdAt', 'updatedAt']});
