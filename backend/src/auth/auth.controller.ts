@@ -1,11 +1,9 @@
-import { Controller, Post, Body, Res, Req, UseGuards } from '@nestjs/common';
+import { Controller, Post, Body, Res, Req, UseGuards, BadRequestException } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import type { Response } from 'express';
 import type { Request } from 'express';
-import { UnauthorizedException } from '@nestjs/common';
 import { ApiTags, ApiOperation } from '@nestjs/swagger';
 import { LoginDto } from './dto/login.dto';
-import { JwtShop } from './jwt-shop.type';
 import { JwtAuthGuard } from './auth.guard';
 
 @ApiTags('auth')
@@ -15,7 +13,10 @@ export class AuthController {
 
   @Post('login')
   @ApiOperation({ summary: 'Login as a shop' })
-  async login(@Body() dto: LoginDto, @Res({ passthrough: true }) res: Response) {
+  async login(@Body() dto: LoginDto, @Req() req: Request, @Res({ passthrough: true }) res: Response) {
+    if (req.cookies['Authentication']) {
+      throw new BadRequestException('You are already logged in. Log out first.');
+    }
     const token = await this.authService.login(dto.email, dto.password);
 
     res.cookie('Authentication', token, {
