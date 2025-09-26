@@ -17,15 +17,6 @@ export class DailyRecordsController {
   @ApiOperation({ summary: 'Create a daily record (CEO can choose shop, shops only for themselves)' })
   async createDailyRecord(@Body() dto: CreateDailyRecordDto, @Req() req: Request) {
     const user = req.user as JwtShop;
-
-    if (user.role === ShopRole.SHOP) {
-      dto.shopId = user.shopId;
-    }
-
-    if (user.role === ShopRole.CEO && !dto.shopId) {
-      throw new ForbiddenException('CEO must specify a shopId');
-    }
-
-    return this.dailyRecordsService.create(dto);
+    return this.dailyRecordsService.create(dto, user);
   }
 }
