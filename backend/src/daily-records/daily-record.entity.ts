@@ -1,4 +1,4 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, CreateDateColumn, UpdateDateColumn } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, CreateDateColumn, UpdateDateColumn, JoinColumn } from 'typeorm';
 import { Shop } from '../shops/shop.entity';
 
 @Entity('daily_records')
@@ -6,7 +6,11 @@ export class DailyRecord {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
+  @Column()
+  shopId: string;
+
   @ManyToOne(() => Shop, (shop) => shop.dailyRecords, { onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'shopId' })
   shop: Shop;
 
   @Column('bigint', { default: 0 })

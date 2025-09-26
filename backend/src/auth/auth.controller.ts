@@ -15,12 +15,8 @@ export class AuthController {
   @ApiOperation({ summary: 'Login as a shop' })
   async login(
     @Body() dto: LoginDto,
-    @Req() req: Request,
     @Res({ passthrough: true }) res: Response,
   ) {
-    if (req.cookies['Authentication']) {
-      throw new BadRequestException('You are already logged in. Log out first.');
-    }
 
     const { token, expiresInMs } = await this.authService.login(dto.email, dto.password);
 

@@ -24,13 +24,13 @@ export class DailyRecordsService {
       throw new ForbiddenException('CEO must specify a shopId');
     }
 
-    const shop = await this.shopRepo.findOne({ where: { id: dto.shopId } });
+    const shop = await this.shopRepo.findOne({ where: { id: dto.shopId }, select: ['id'] });
     if (!shop) {
       throw new NotFoundException(`Shop with id ${dto.shopId} not found`);
     }
 
     const record = this.dailyRecordRepo.create({
-      shop,
+      shopId: dto.shopId,
       revenueMainWithMargin: dto.revenueMainWithMargin,
       revenueMainWithoutMargin: dto.revenueMainWithoutMargin,
       revenueOrderWithMargin: dto.revenueOrderWithMargin,
@@ -40,5 +40,29 @@ export class DailyRecordsService {
     });
 
     return this.dailyRecordRepo.save(record);
+  }
+
+
+  async findAll(user: JwtShop, shopId?: string): Promise<DailyRecord[]> {
+    if (user.role === ShopRole.SHOP) {
+      shopId = user.shopId;
+    }
+
+    if (user.role === ShopRole.CEO && !shopId) {
+      return this.dailyRecordRepo.find({
+        relations: [],
+        order: { createdAt: 'DESC' },
+      });
+    }
+
+    const shop = await this.shopRepo.findOne({ where: { id: shopId } });
+    if (!shop) {
+      throw new NotFoundException(`Shop with id ${shopId} not found`);
+    }
+
+    return this.dailyRecordRepo.find({
+      where: shopId ? { shopId } : {},
+      order: { createdAt: 'DESC' },
+    });
   }
 }

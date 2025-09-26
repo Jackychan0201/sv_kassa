@@ -61,7 +61,6 @@ export class ShopsService {
     }
   }
 
-
   findAll(): Promise<Shop[]> {
     return this.shopRepository.find({select: ['id', 'name', 'email', 'role', 'createdAt', 'updatedAt']});
   }
