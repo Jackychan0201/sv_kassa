@@ -1,4 +1,4 @@
-import { Controller, Post, Body, Res, Req, UseGuards, BadRequestException } from '@nestjs/common';
+import { Controller, Post, Body, Res, Req, UseGuards, BadRequestException, Get } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import type { Response } from 'express';
 import type { Request } from 'express';
@@ -44,5 +44,12 @@ export class AuthController {
     });
 
     return { message: 'Logged out successfully' };
+  }
+
+  @Get('me')
+  @UseGuards(JwtAuthGuard)
+  @ApiOperation({ summary: 'Get current shop info' })
+  async me(@Req() req: Request) {
+    return req.user;
   }
 }
