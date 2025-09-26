@@ -29,6 +29,9 @@ export class DailyRecordsService {
       throw new NotFoundException(`Shop with id ${dto.shopId} not found`);
     }
 
+    const [day, month, year] = dto.recordDate.split('.');
+    const isoDate = `${year}-${month}-${day}`;
+
     const record = this.dailyRecordRepo.create({
       shopId: dto.shopId,
       revenueMainWithMargin: dto.revenueMainWithMargin,
@@ -37,6 +40,7 @@ export class DailyRecordsService {
       revenueOrderWithoutMargin: dto.revenueOrderWithoutMargin,
       mainStockValue: dto.mainStockValue,
       orderStockValue: dto.orderStockValue,
+      recordDate: isoDate,
     });
 
     return this.dailyRecordRepo.save(record);

@@ -1,5 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsUUID, IsInt, Min } from 'class-validator';
+import { Transform } from 'class-transformer';
+import { IsUUID, IsInt, Min, IsDateString, Matches } from 'class-validator';
 
 export class CreateDailyRecordDto {
   @ApiProperty({
@@ -38,4 +39,9 @@ export class CreateDailyRecordDto {
   @IsInt()
   @Min(0)
   orderStockValue: number;
+
+  @ApiProperty({ example: '26.09.2025', description: 'Date of the daily record (DD.MM.YYYY)' })
+  @Matches(/^\d{2}\.\d{2}\.\d{4}$/, { message: 'Date must be in DD.MM.YYYY format' })
+  recordDate: string;
+
 }
