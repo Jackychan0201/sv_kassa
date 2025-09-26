@@ -19,7 +19,7 @@ export class AuthService {
     const passwordMatch = await bcrypt.compare(password, shop.password);
     if (!passwordMatch) throw new UnauthorizedException('Invalid credentials');
 
-    const payload = { sub: shop.id, email: shop.email, role: shop.role };
+    const payload = { sub: shop.id, name: shop.name, email: shop.email, role: shop.role };
 
     const expiresInSec = this.configService.get<number>('JWT_EXPIRES_IN', 86400);
     const token = this.jwtService.sign(payload, { expiresIn: expiresInSec });

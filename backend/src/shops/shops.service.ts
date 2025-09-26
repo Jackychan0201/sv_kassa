@@ -83,4 +83,16 @@ export class ShopsService {
     }
     return shop;
   }
+
+  async findByName(name: string): Promise<Shop> {
+    const shop = await this.shopRepository.findOne({
+      where: { name },
+      select: ['id', 'name', 'email', 'role', 'createdAt', 'updatedAt'],
+    });
+
+    if (!shop) {
+      throw new NotFoundException(`Shop with name "${name}" not found`);
+    }
+    return shop;
+  }
 }
