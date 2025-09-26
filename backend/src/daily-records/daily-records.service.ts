@@ -42,6 +42,12 @@ export class DailyRecordsService {
     return this.dailyRecordRepo.save(record);
   }
 
+  async findOneById(id: string): Promise<DailyRecord | null> {
+    return this.dailyRecordRepo.findOne({
+      where: { id },
+      select: ['id', 'shopId', 'revenueMainWithMargin', 'revenueMainWithoutMargin', 'revenueOrderWithMargin', 'revenueOrderWithoutMargin', 'mainStockValue', 'orderStockValue', 'createdAt', 'updatedAt'],
+    });
+  }
 
   async findAll(user: JwtShop, shopId?: string): Promise<DailyRecord[]> {
     if (user.role === ShopRole.SHOP) {

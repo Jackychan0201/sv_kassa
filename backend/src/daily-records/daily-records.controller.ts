@@ -1,4 +1,4 @@
-import { Body, Controller, Post, UseGuards, Req, ForbiddenException, Get } from '@nestjs/common';
+import { Body, Controller, Post, UseGuards, Req, ForbiddenException, Get, NotFoundException, Param } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiParam } from '@nestjs/swagger';
 import { DailyRecordsService } from './daily-records.service';
 import { CreateDailyRecordDto } from './dto/create-daily-record.dto';
@@ -6,6 +6,7 @@ import { JwtAuthGuard } from '../auth/auth.guard';
 import type { Request } from 'express';
 import { JwtShop } from 'src/auth/jwt-shop.type';
 import { Query } from '@nestjs/common';
+import { ShopRole } from 'src/shops/shop.entity';
 
 
 @ApiTags('daily-records')
@@ -24,11 +25,31 @@ export class DailyRecordsController {
 
   @Get()
   @UseGuards(JwtAuthGuard)
-  @ApiOperation({ summary: 'Get daily records (CEO can see all, shops only their own)' })
+  @ApiOperation({ summary: 'Get all daily records by id of the shop (CEO can see all, shops only their own)' })
   @ApiParam({ name: 'shopId', required: false, description: 'Shop ID to filter records (CEO only)' })
   async getDailyRecords(@Req() req: Request, @Query('shopId') shopId?: string) {
     const user = req.user as JwtShop;
     return this.dailyRecordsService.findAll(user, shopId);
+  }
+
+  @Get(':id')
+  @UseGuards(JwtAuthGuard)
+  @ApiOperation({ summary: 'Get a specific daily record by ID' })
+  @ApiParam({ name: 'id', description: 'Daily record ID (UUID)' })
+  async getDailyRecordById(@Param('id') id: string, @Req() req: Request) {
+    const user = req.user as JwtShop;
+
+    const record = await this.dailyRecordsService.findOneById(id);
+
+    if (!record) {
+      throw new NotFoundException(`Daily record with id ${id} not found`);
+    }
+
+    if (user.role !== ShopRole.CEO && record.shopId !== user.shopId) {
+      throw new ForbiddenException('You are not allowed to access this record');
+    }
+
+    return record;
   }
 
 }
