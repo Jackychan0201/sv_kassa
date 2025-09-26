@@ -13,23 +13,28 @@ export class AuthController {
 
   @Post('login')
   @ApiOperation({ summary: 'Login as a shop' })
-  async login(@Body() dto: LoginDto, @Req() req: Request, @Res({ passthrough: true }) res: Response) {
+  async login(
+    @Body() dto: LoginDto,
+    @Req() req: Request,
+    @Res({ passthrough: true }) res: Response,
+  ) {
     if (req.cookies['Authentication']) {
       throw new BadRequestException('You are already logged in. Log out first.');
     }
-    const token = await this.authService.login(dto.email, dto.password);
+
+    const { token, expiresInMs } = await this.authService.login(dto.email, dto.password);
 
     res.cookie('Authentication', token, {
       httpOnly: true,
-      sameSite: 'lax', 
-      maxAge: 1000 * 60 * 60 * 24,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      maxAge: expiresInMs,
     });
 
     return { message: 'Login successful' };
   }
 
   @Post('logout')
-  @UseGuards(JwtAuthGuard)
   @ApiOperation({ summary: 'Logout the current shop' })
   async logout(@Res({ passthrough: true }) res: Response) {
 
