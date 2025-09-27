@@ -35,7 +35,7 @@ export class DailyRecordsController {
 
   @Get('by-date')
   @UseGuards(JwtAuthGuard)
-  @ApiOperation({ summary: 'Get daily records by date range and optional shopId' })
+  @ApiOperation({ summary: 'Get daily records by date range and optional shopId (CEO can get any, shops only their own)' })
   @ApiQuery({ name: 'fromDate', required: true, description: 'Start date in DD.MM.YYYY format' })
   @ApiQuery({ name: 'toDate', required: true, description: 'End date in DD.MM.YYYY format' })
   @ApiQuery({ name: 'shopId', required: false, description: 'Shop ID to filter records (CEO only)' })
@@ -60,7 +60,7 @@ export class DailyRecordsController {
 
   @Patch(':id')
   @UseGuards(JwtAuthGuard)
-  @ApiOperation({ summary: 'Update a daily record by ID' })
+  @ApiOperation({ summary: 'Update a daily record by ID (CEO can update any, shops only their own)' })
   @ApiParam({ name: 'id', description: 'Daily record ID (UUID)' })
   async updateDailyRecord(
     @Param('id') id: string,
@@ -73,7 +73,7 @@ export class DailyRecordsController {
 
   @Delete(':id')
   @UseGuards(JwtAuthGuard)
-  @ApiOperation({ summary: 'Delete a daily record by ID' })
+  @ApiOperation({ summary: 'Delete a daily record by ID (CEO can delete any, shops only their own)' })
   @ApiParam({ name: 'id', description: 'Daily record ID (UUID)' })
   async deleteDailyRecord(
     @Param('id') id: string,
