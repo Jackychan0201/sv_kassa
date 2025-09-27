@@ -21,10 +21,11 @@ export class AuthService {
 
     const payload = { sub: shop.id, name: shop.name, email: shop.email, role: shop.role };
 
-    const expiresInSec = this.configService.get<number>('JWT_EXPIRES_IN', 86400);
-    const token = this.jwtService.sign(payload, { expiresIn: expiresInSec });
+    const token = this.jwtService.sign(payload);
 
-    return { token, expiresInMs: expiresInSec * 1000 };
-  }
+    const decoded = this.jwtService.decode(token) as { exp: number; iat: number };
+    const expiresInMs = (decoded.exp - decoded.iat) * 1000;
 
+    return { token, expiresInMs };
+    }
 }
