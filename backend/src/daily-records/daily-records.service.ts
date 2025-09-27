@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Between, Repository } from 'typeorm';
 import { DailyRecord } from './daily-record.entity';
 import { CreateDailyRecordDto } from './dto/create-daily-record.dto';
 import { Shop, ShopRole } from '../shops/shop.entity';
@@ -76,6 +76,51 @@ export class DailyRecordsService {
     return record;
   }
 
+  async findByDateRange(
+    user: JwtShop,
+    fromDate: string,
+    toDate: string,
+    shopId?: string,
+  ): Promise<DailyRecord[]> {
+    if (!fromDate || !toDate) {
+      throw new ForbiddenException('Both fromDate and toDate are required');
+    }
+
+    if (user.role === ShopRole.SHOP) {
+      shopId = user.shopId;
+    }
+
+    const [fromDay, fromMonth, fromYear] = fromDate.split('.');
+    const [toDay, toMonth, toYear] = toDate.split('.');
+    const isoFrom = `${fromYear}-${fromMonth}-${fromDay}`;
+    const isoTo = `${toYear}-${toMonth}-${toDay}`;
+
+    const where: any = {
+      recordDate: Between(isoFrom, isoTo),
+    };
+
+    if (shopId) {
+      const shop = await this.shopRepo.findOne({ where: { id: shopId } });
+      if (!shop) {
+        throw new NotFoundException(`Shop with id ${shopId} not found`);
+      }
+      where.shopId = shopId;
+    }
+
+    const result = await this.dailyRecordRepo.find({
+      where,
+      order: { recordDate: 'ASC' },
+    });
+
+    for (const record of result) {
+      const [year, month, day] = record.recordDate.split('-');
+      record.recordDate = `${day}.${month}.${year}`;
+    }
+
+    return result;
+  }
+
+
   async findAll(user: JwtShop, shopId?: string): Promise<DailyRecord[]> {
     if (user.role === ShopRole.SHOP) {
       shopId = user.shopId;
@@ -84,7 +129,7 @@ export class DailyRecordsService {
     if (user.role === ShopRole.CEO && !shopId) {
       return this.dailyRecordRepo.find({
         relations: [],
-        order: { createdAt: 'DESC' },
+        order: { createdAt: 'ASC' },
       });
     }
 
@@ -93,12 +138,12 @@ export class DailyRecordsService {
       throw new NotFoundException(`Shop with id ${shopId} not found`);
     }
 
-    const result = this.dailyRecordRepo.find({
+    const result = await this.dailyRecordRepo.find({
       where: shopId ? { shopId } : {},
-      order: { recordDate: 'DESC' },
+      order: { recordDate: 'ASC' },
     });
 
-    for (const record of await result) {
+    for (const record of result) {
       const [year, month, day] = record.recordDate.split('-');
       record.recordDate = `${day}.${month}.${year}`;
     }

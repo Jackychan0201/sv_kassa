@@ -1,5 +1,5 @@
 import { Body, Controller, Post, UseGuards, Req, ForbiddenException, Get, NotFoundException, Param } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiParam } from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiParam, ApiQuery } from '@nestjs/swagger';
 import { DailyRecordsService } from './daily-records.service';
 import { CreateDailyRecordDto } from './dto/create-daily-record.dto';
 import { JwtAuthGuard } from '../auth/auth.guard';
@@ -30,6 +30,22 @@ export class DailyRecordsController {
   async getDailyRecords(@Req() req: Request, @Query('shopId') shopId?: string) {
     const user = req.user as JwtShop;
     return await this.dailyRecordsService.findAll(user, shopId);
+  }
+
+  @Get('by-date')
+  @UseGuards(JwtAuthGuard)
+  @ApiOperation({ summary: 'Get daily records by date range and optional shopId' })
+  @ApiQuery({ name: 'fromDate', required: true, description: 'Start date in DD.MM.YYYY format' })
+  @ApiQuery({ name: 'toDate', required: true, description: 'End date in DD.MM.YYYY format' })
+  @ApiQuery({ name: 'shopId', required: false, description: 'Shop ID to filter records (CEO only)' })
+  async getDailyRecordsByDate(
+    @Req() req: Request,
+    @Query('fromDate') fromDate: string,
+    @Query('toDate') toDate: string,
+    @Query('shopId') shopId?: string,
+  ) {
+    const user = req.user as JwtShop;
+    return this.dailyRecordsService.findByDateRange(user, fromDate, toDate, shopId);
   }
 
   @Get(':id')
