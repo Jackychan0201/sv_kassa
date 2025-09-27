@@ -32,6 +32,13 @@ export class DailyRecordsService {
     const [day, month, year] = dto.recordDate.split('.');
     const isoDate = `${year}-${month}-${day}`;
 
+    const existingRecord = await this.dailyRecordRepo.findOne({
+      where: { shopId: dto.shopId, recordDate: isoDate },
+    });
+    if (existingRecord) {
+      throw new ForbiddenException(`A daily record for shop ${dto.shopId} on ${dto.recordDate} already exists`);
+    }
+
     const record = this.dailyRecordRepo.create({
       shopId: dto.shopId,
       revenueMainWithMargin: dto.revenueMainWithMargin,
@@ -46,6 +53,7 @@ export class DailyRecordsService {
     return this.dailyRecordRepo.save(record);
   }
 
+
   async findOneById(user: JwtShop, recordId: string): Promise<DailyRecord | null> {
     const record = await this.dailyRecordRepo.findOne({
       where: { id: recordId },
@@ -59,6 +67,11 @@ export class DailyRecordsService {
     if (user.role !== ShopRole.CEO && record.shopId !== user.shopId) {
       throw new ForbiddenException('You are not allowed to access this record');
     }
+
+    const [year, month, day] = record.recordDate.split('-');
+    record.recordDate = `${day}.${month}.${year}`;
+
+    console.log('Retrieved record:', record);
 
     return record;
   }
@@ -80,9 +93,16 @@ export class DailyRecordsService {
       throw new NotFoundException(`Shop with id ${shopId} not found`);
     }
 
-    return this.dailyRecordRepo.find({
+    const result = this.dailyRecordRepo.find({
       where: shopId ? { shopId } : {},
-      order: { createdAt: 'DESC' },
+      order: { recordDate: 'DESC' },
     });
+
+    for (const record of await result) {
+      const [year, month, day] = record.recordDate.split('-');
+      record.recordDate = `${day}.${month}.${year}`;
+    }
+
+    return result;
   }
 }

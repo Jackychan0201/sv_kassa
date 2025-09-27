@@ -34,7 +34,7 @@ export class DailyRecordsController {
 
   @Get(':id')
   @UseGuards(JwtAuthGuard)
-  @ApiOperation({ summary: 'Get a specific daily record by ID' })
+  @ApiOperation({ summary: 'Get a specific daily record by ID (CEO can see all, shops only their own)' })
   @ApiParam({ name: 'id', description: 'Daily record ID (UUID)' })
   async getDailyRecordById(@Param('id') id: string, @Req() req: Request) {
     const user = req.user as JwtShop;
