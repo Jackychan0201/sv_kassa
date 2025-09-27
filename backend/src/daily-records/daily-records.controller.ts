@@ -19,7 +19,7 @@ export class DailyRecordsController {
   @ApiOperation({ summary: 'Create a daily record (CEO can choose shop, shops only for themselves)' })
   async createDailyRecord(@Body() dto: CreateDailyRecordDto, @Req() req: Request) {
     const user = req.user as JwtShop;
-    return this.dailyRecordsService.create(dto, user);
+    return await this.dailyRecordsService.create(dto, user);
   }
 
 
@@ -29,7 +29,7 @@ export class DailyRecordsController {
   @ApiParam({ name: 'shopId', required: false, description: 'Shop ID to filter records (CEO only)' })
   async getDailyRecords(@Req() req: Request, @Query('shopId') shopId?: string) {
     const user = req.user as JwtShop;
-    return this.dailyRecordsService.findAll(user, shopId);
+    return await this.dailyRecordsService.findAll(user, shopId);
   }
 
   @Get(':id')
@@ -38,18 +38,6 @@ export class DailyRecordsController {
   @ApiParam({ name: 'id', description: 'Daily record ID (UUID)' })
   async getDailyRecordById(@Param('id') id: string, @Req() req: Request) {
     const user = req.user as JwtShop;
-
-    const record = await this.dailyRecordsService.findOneById(id);
-
-    if (!record) {
-      throw new NotFoundException(`Daily record with id ${id} not found`);
-    }
-
-    if (user.role !== ShopRole.CEO && record.shopId !== user.shopId) {
-      throw new ForbiddenException('You are not allowed to access this record');
-    }
-
-    return record;
+    return await this.dailyRecordsService.findOneById(user, id);
   }
-
 }

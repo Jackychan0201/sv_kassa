@@ -46,11 +46,21 @@ export class DailyRecordsService {
     return this.dailyRecordRepo.save(record);
   }
 
-  async findOneById(id: string): Promise<DailyRecord | null> {
-    return this.dailyRecordRepo.findOne({
-      where: { id },
-      select: ['id', 'shopId', 'revenueMainWithMargin', 'revenueMainWithoutMargin', 'revenueOrderWithMargin', 'revenueOrderWithoutMargin', 'mainStockValue', 'orderStockValue', 'createdAt', 'updatedAt'],
+  async findOneById(user: JwtShop, recordId: string): Promise<DailyRecord | null> {
+    const record = await this.dailyRecordRepo.findOne({
+      where: { id: recordId },
+      select: ['id', 'shopId', 'recordDate', 'revenueMainWithMargin', 'revenueMainWithoutMargin', 'revenueOrderWithMargin', 'revenueOrderWithoutMargin', 'mainStockValue', 'orderStockValue', 'createdAt', 'updatedAt'],
     });
+
+    if (!record) {
+      throw new NotFoundException(`Daily record with id ${recordId} not found`);
+    }
+    
+    if (user.role !== ShopRole.CEO && record.shopId !== user.shopId) {
+      throw new ForbiddenException('You are not allowed to access this record');
+    }
+
+    return record;
   }
 
   async findAll(user: JwtShop, shopId?: string): Promise<DailyRecord[]> {
