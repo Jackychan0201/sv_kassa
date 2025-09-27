@@ -40,10 +40,7 @@ export class ShopsController {
   @ApiResponse({ status: 200, description: 'Shop found successfully.', type: Shop })
   async findById(@Param('id') id: string, @Req() req: Request): Promise<Shop> {
     const user = req.user as JwtShop;
-    if (user.role !== ShopRole.CEO && user.shopId !== id) {
-      throw new ForbiddenException('You are not allowed to fetch another shop info');
-    }
-    return this.shopsService.findOne(id);
+    return this.shopsService.findById(user, id);
   }
 
   @Get('by-name/:name')
@@ -53,11 +50,7 @@ export class ShopsController {
   @ApiResponse({ status: 200, description: 'Shop found successfully.', type: Shop })
   async findByName(@Param('name') name: string, @Req() req: Request): Promise<Shop> {
     const user = req.user as JwtShop;
-    console.log(user);
-    if (user.role !== ShopRole.CEO && user.name !== name) {
-      throw new ForbiddenException('You are not allowed to fetch another shop info');
-    }
-    return this.shopsService.findByName(name);
+    return this.shopsService.findByName(user, name);
   }
 
   @Patch(':id')
@@ -66,16 +59,7 @@ export class ShopsController {
   @ApiResponse({ status: 200, description: 'Shop updated successfully.', type: Shop })
   async update(@Param('id') id: string, @Body() dto: UpdateShopDto, @Req() req: Request): Promise<Shop> {
     const user = req.user as JwtShop;
-
-    if (user.role !== ShopRole.CEO && user.shopId !== id) {
-      throw new ForbiddenException('You are not allowed to update this shop');
-    }
-
-    if (dto.role && user.role !== ShopRole.CEO) {
-      throw new ForbiddenException('Only CEO can change shop roles');
-    }
-
-    return this.shopsService.updateShop(id, dto);
+    return this.shopsService.updateShop(user, id, dto);
   }
 
   @Delete(':id')
@@ -84,12 +68,7 @@ export class ShopsController {
   @ApiResponse({ status: 200, description: 'Shop deleted successfully.' })
   async delete(@Param('id') id: string, @Req() req: Request): Promise<{ message: string }> {
     const user = req.user as JwtShop;
-
-    if (user.role !== ShopRole.CEO && user.shopId !== id) {
-      throw new ForbiddenException('You are not allowed to delete this shop');
-    }
-
-    await this.shopsService.deleteShop(id);
+    await this.shopsService.deleteShop(user, id);
     return { message: `Shop with id ${id} deleted successfully` };
   }
 }
