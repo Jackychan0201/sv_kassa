@@ -48,15 +48,9 @@ export class ShopsService {
       throw new NotFoundException(`Shop with id ${id} not found`);
     }
 
-    if (dto.password) {
-      shop.password = await bcrypt.hash(dto.password, 10);
-    }
-    if (dto.name) {
-      shop.name = dto.name;
-    }
-    if (dto.role) {
-      shop.role = dto.role;
-    }
+    if (dto.password) shop.password = await bcrypt.hash(dto.password, 10);
+    if (dto.name) shop.name = dto.name;
+    if (dto.role) shop.role = dto.role;
 
     const updatedShop = this.shopRepository.save(shop);
     const { password, ...result } = await updatedShop;

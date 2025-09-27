@@ -5,6 +5,7 @@ import { DailyRecord } from './daily-record.entity';
 import { CreateDailyRecordDto } from './dto/create-daily-record.dto';
 import { Shop, ShopRole } from '../shops/shop.entity';
 import { JwtShop } from '../auth/jwt-shop.type';
+import { UpdateDailyRecordDto } from './dto/update-daily-record.dto';
 
 @Injectable()
 export class DailyRecordsService {
@@ -149,5 +150,49 @@ export class DailyRecordsService {
     }
 
     return result;
+  }
+
+  async updateById(user: JwtShop, recordId: string, dto: UpdateDailyRecordDto): Promise<DailyRecord> {
+    const record = await this.dailyRecordRepo.findOne({ where: { id: recordId } });
+    if (!record) {
+      throw new NotFoundException(`Daily record with id ${recordId} not found`);
+    }
+
+    if (user.role !== ShopRole.CEO && record.shopId !== user.shopId) {
+      throw new ForbiddenException('You are not allowed to update this record');
+    }
+
+    if (dto.revenueMainWithMargin) record.revenueMainWithMargin = dto.revenueMainWithMargin;
+    if (dto.revenueMainWithoutMargin) record.revenueMainWithoutMargin = dto.revenueMainWithoutMargin;
+    if (dto.revenueOrderWithMargin) record.revenueOrderWithMargin = dto.revenueOrderWithMargin;
+    if (dto.revenueOrderWithoutMargin) record.revenueOrderWithoutMargin = dto.revenueOrderWithoutMargin;
+    if (dto.mainStockValue) record.mainStockValue = dto.mainStockValue;
+    if (dto.orderStockValue) record.orderStockValue = dto.orderStockValue;
+
+    if (dto.recordDate) {
+      const [day, month, year] = dto.recordDate.split('.');
+      const isoDate = `${year}-${month}-${day}`;
+      record.recordDate = isoDate;
+    }
+
+    const updatedRecord = await this.dailyRecordRepo.save(record);
+
+    const [year, month, day] = updatedRecord.recordDate.split('-');
+    updatedRecord.recordDate = `${day}.${month}.${year}`;
+
+    return updatedRecord;
+  }
+
+  async deleteById(user: JwtShop, recordId: string): Promise<void> {
+    const record = await this.dailyRecordRepo.findOne({ where: { id: recordId } });
+    if (!record) {
+      throw new NotFoundException(`Daily record with id ${recordId} not found`);
+    }
+
+    if (user.role !== ShopRole.CEO && record.shopId !== user.shopId) {
+      throw new ForbiddenException('You are not allowed to delete this record');
+    }
+
+    await this.dailyRecordRepo.delete(recordId);
   }
 }

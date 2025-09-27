@@ -1,4 +1,4 @@
-import { Body, Controller, Post, UseGuards, Req, ForbiddenException, Get, NotFoundException, Param } from '@nestjs/common';
+import { Body, Controller, Post, UseGuards, Req, ForbiddenException, Get, NotFoundException, Param, Patch, Delete } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiParam, ApiQuery } from '@nestjs/swagger';
 import { DailyRecordsService } from './daily-records.service';
 import { CreateDailyRecordDto } from './dto/create-daily-record.dto';
@@ -7,6 +7,7 @@ import type { Request } from 'express';
 import { JwtShop } from 'src/auth/jwt-shop.type';
 import { Query } from '@nestjs/common';
 import { ShopRole } from 'src/shops/shop.entity';
+import { UpdateDailyRecordDto } from './dto/update-daily-record.dto';
 
 
 @ApiTags('daily-records')
@@ -55,5 +56,31 @@ export class DailyRecordsController {
   async getDailyRecordById(@Param('id') id: string, @Req() req: Request) {
     const user = req.user as JwtShop;
     return await this.dailyRecordsService.findOneById(user, id);
+  }
+
+  @Patch(':id')
+  @UseGuards(JwtAuthGuard)
+  @ApiOperation({ summary: 'Update a daily record by ID' })
+  @ApiParam({ name: 'id', description: 'Daily record ID (UUID)' })
+  async updateDailyRecord(
+    @Param('id') id: string,
+    @Body() dto: UpdateDailyRecordDto,
+    @Req() req: Request,
+  ) {
+    const user = req.user as JwtShop;
+    return this.dailyRecordsService.updateById(user, id, dto);
+  }
+
+  @Delete(':id')
+  @UseGuards(JwtAuthGuard)
+  @ApiOperation({ summary: 'Delete a daily record by ID' })
+  @ApiParam({ name: 'id', description: 'Daily record ID (UUID)' })
+  async deleteDailyRecord(
+    @Param('id') id: string,
+    @Req() req: Request,
+  ) {
+    const user = req.user as JwtShop;
+    await this.dailyRecordsService.deleteById(user, id);
+    return { message: `Daily record with id ${id} deleted successfully` };
   }
 }
