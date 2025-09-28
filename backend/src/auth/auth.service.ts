@@ -9,7 +9,6 @@ export class AuthService {
   constructor(
     private readonly shopsService: ShopsService,
     private readonly jwtService: JwtService,
-    private readonly configService: ConfigService,
   ) {}
 
   async login(email: string, password: string) {

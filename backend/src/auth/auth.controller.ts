@@ -23,7 +23,7 @@ export class AuthController {
     res.cookie('Authentication', token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
+      sameSite: 'lax',
       maxAge: expiresInMs,
     });
 
@@ -37,6 +37,7 @@ export class AuthController {
     res.clearCookie('Authentication', {
       httpOnly: true,
       sameSite: 'lax',
+      path: '/',
     });
 
     return { message: 'Logged out successfully' };
