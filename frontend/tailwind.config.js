@@ -3,10 +3,14 @@ module.exports = {
   content: [
     "./src/**/*.{js,ts,jsx,tsx}",
     "./components/**/*.{js,ts,jsx,tsx}",
-    "./app/**/*.{js,ts,jsx,tsx}", // If you use Next.js App Router
+    "./app/**/*.{js,ts,jsx,tsx}",
   ],
   theme: {
-    extend: {},
+    extend: {
+      fontFamily: {
+        sans: ["var(--font-nunito-sans)", "sans-serif"], 
+      },
+    },
   },
   plugins: [],
 };

@@ -80,7 +80,7 @@ export class ShopsService {
          select: ['id', 'name', 'email', 'role', 'createdAt', 'updatedAt'], 
         });
     if (!shop) {
-      throw new Error(`Shop with id ${id} not found`);
+      throw new NotFoundException(`Shop with id ${id} not found`);
     }
     return shop;
   }
@@ -88,7 +88,7 @@ export class ShopsService {
   async findByEmail(email: string): Promise<Shop> {
     const shop = await this.shopRepository.findOne({ where: { email } });
     if (!shop) {
-      throw new Error(`Shop with email ${email} not found`);
+      throw new NotFoundException(`Shop with email ${email} not found`);
     }
     return shop;
   }
