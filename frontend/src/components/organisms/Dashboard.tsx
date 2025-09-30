@@ -3,8 +3,9 @@
 import { logout } from "@/lib/api";
 import { useRouter } from "next/navigation";
 import DotGrid from "./DotGrid";
-import { SidebarProvider, SidebarTrigger } from "../atoms/sidebar";
 import { SVSidebar } from "../molecules/sv-sidebar";
+import { SidebarProvider } from "../atoms/sidebar";
+
 
 interface DashboardProps {
   user: { name: string };
@@ -24,9 +25,8 @@ export default function Dashboard({ user }: DashboardProps) {
 
   return (
   <div className="bg-[#1e1e1e] relative h-screen">
-      <SidebarProvider>
+    <SidebarProvider defaultOpen={true}>
     <SVSidebar />
-    <SidebarTrigger />
     <div className="absolute inset-0 z-0">
         <DotGrid
           dotSize={4}
@@ -41,7 +41,7 @@ export default function Dashboard({ user }: DashboardProps) {
         />
     </div>
 
-    <div className="relative z-10 flex flex-col items-center justify-center text-[#f0f0f0]">
+    <div className="relative z-10 flex flex-col mx-auto items-center justify-center text-[#f0f0f0]">
       <h1 className="text-4xl font-bold mt-8">Welcome, {user.name}!</h1>
       <p className="mb-8">This is your dashboard.</p>
       <button
