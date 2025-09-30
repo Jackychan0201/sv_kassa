@@ -48,7 +48,7 @@ export default async function AuthenticatedLayout({
             />
           </div>
 
-          <div className="relative z-10 flex flex-col mx-auto items-center justify-center text-[#f0f0f0]">
+          <div className="relative z-10 ml-45 mt-3 text-[#f0f0f0]">
             {children}
           </div>
         </SidebarProvider>
