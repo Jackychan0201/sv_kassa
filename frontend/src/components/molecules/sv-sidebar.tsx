@@ -19,14 +19,14 @@ export function SVSidebar(user: {name: string}) {
                 </SidebarMenuItem>
                 <SidebarMenuItem key="statistics">
                     <SidebarMenuButton className="hover:bg-[#969696]" asChild>
-                        <Link href="/dashboard">
+                        <Link href="/statistics">
                             <Label>Statistics</Label>
                         </Link>
                     </SidebarMenuButton>
                 </SidebarMenuItem>
                 <SidebarMenuItem key="settings">
                     <SidebarMenuButton className="hover:bg-[#969696]" asChild>
-                        <Link href="/dashboard">
+                        <Link href="/settings">
                             <Label>Settings</Label>
                         </Link>
                     </SidebarMenuButton>
@@ -46,7 +46,7 @@ export function SVSidebar(user: {name: string}) {
                         <DropdownMenuContent
                         side="top"
                         className="w-[--radix-popper-anchor-width] bg-[#969696]">
-                            <DropdownMenuItem>
+                            <DropdownMenuItem asChild>
                                 <Link href="/account">
                                     <Label>Account</Label>
                                 </Link>
