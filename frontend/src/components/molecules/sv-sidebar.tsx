@@ -1,10 +1,29 @@
+"use client";
+
 import Link from "next/link";
 import { Label } from "../atoms/label";
 import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from "../atoms/sidebar";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "../atoms/dropdown-menu";
 import { ChevronUp } from "lucide-react";
+import { logout } from "@/lib/api";
+import { useRouter } from "next/navigation";
 
-export function SVSidebar(user: {name: string}) {
+interface SVSidebarProps {
+  user: { name: string };
+}
+
+export function SVSidebar({user}: SVSidebarProps) {
+  const router = useRouter();
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+      router.push("/login");
+    } catch (err: any) {
+      console.error(err.message);
+    }
+  };
+
   return (
     <Sidebar className="w-40 border-black text-[#f0f0f0]" >
         <SidebarHeader className="bg-[#292929] font-bold">Navigation</SidebarHeader>
@@ -51,10 +70,8 @@ export function SVSidebar(user: {name: string}) {
                                     <Label>Account</Label>
                                 </Link>
                             </DropdownMenuItem>
-                            <DropdownMenuItem>
-                                <Link href="/logout">
-                                    <Label>Logout</Label>
-                                </Link>
+                            <DropdownMenuItem asChild>
+                                    <Label onClick={handleLogout}>Logout</Label>
                             </DropdownMenuItem>
                         </DropdownMenuContent>
                     </DropdownMenu>

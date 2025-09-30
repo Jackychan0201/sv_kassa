@@ -1,7 +1,5 @@
 "use client";
 
-import { logout } from "@/lib/api";
-import { useRouter } from "next/navigation";
 import DotGrid from "./DotGrid";
 import { SVSidebar } from "../molecules/sv-sidebar";
 import { SidebarProvider } from "../atoms/sidebar";
@@ -12,21 +10,10 @@ interface StatisticsProps {
 }
 
 export default function Statistics({ user }: StatisticsProps) {
-  const router = useRouter();
-
-  const handleLogout = async () => {
-    try {
-      await logout();
-      router.push("/login");
-    } catch (err: any) {
-      console.error(err.message);
-    }
-  };
-
   return (
   <div className="bg-[#1e1e1e] relative h-screen">
     <SidebarProvider defaultOpen={true}>
-    <SVSidebar {...user}/>
+    <SVSidebar user={user}/>
     <div className="absolute inset-0 z-0">
         <DotGrid
           dotSize={4}

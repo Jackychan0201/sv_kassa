@@ -26,7 +26,7 @@ export default function Account({ user }: AccountProps) {
   return (
   <div className="bg-[#1e1e1e] relative h-screen">
     <SidebarProvider defaultOpen={true}>
-    <SVSidebar {...user}/>
+    <SVSidebar user={user}/>
     <div className="absolute inset-0 z-0">
         <DotGrid
           dotSize={4}
