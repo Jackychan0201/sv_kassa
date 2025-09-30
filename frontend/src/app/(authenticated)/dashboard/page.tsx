@@ -7,11 +7,12 @@ import { useUser } from "@/components/providers/user-provider";
 import { useEffect, useState } from "react";
 import { getTodaysRecord } from "@/lib/api";
 import { DailyRecord } from "@/lib/types";
+import { CloseDaySheet } from "@/components/organisms/close-day-sheet";
 
 export default function DashboardPage() {
   const user = useUser();
   const today = new Date(Date.now());
-  const formattedDate = `${today.getDate()}.${(today.getMonth() + 1 < 10) ? 0 : ``}${today.getMonth() + 1}.${today.getFullYear()}`;
+  const formattedDate = `${(today.getDate() < 10) ? 0 : ``}${today.getDate()}.${(today.getMonth() + 1 < 10) ? 0 : ``}${today.getMonth() + 1}.${today.getFullYear()}`;
 
   const [record, setRecord] = useState<DailyRecord[] | null>(null);  
   const [loading, setLoading] = useState(true);
@@ -45,7 +46,7 @@ export default function DashboardPage() {
         <Label className={"text-xl " + (recordData[0] !==null ? 'text-[#009908]' : 'text-[#960000]')}>{(recordData[0] !== null) ? "Day is closed sucessfully!" : "Day is not closed!"}</Label>
       </div>
       <div className="flex flex-row mt-10 gap-x-5">
-        <Button disabled={recordData[0] !== null} className="disabled:opacity-50 w-50 transition text-[#f0f0f0] delay-150 duration-300 ease-in-out hover:-translate-y-0 hover:scale-110 hover:bg-[#414141]">Close the day</Button>
+        <CloseDaySheet disabled={recordData[0] !== null} formattedDate={formattedDate}/>
         <Button className="w-50 transition text-[#f0f0f0] delay-150 duration-300 ease-in-out hover:-translate-y-0 hover:scale-110 hover:bg-[#414141]">Edit data</Button>
         <Button className="w-50 transition text-[#f0f0f0] delay-150 duration-300 ease-in-out hover:-translate-y-0 hover:scale-110 hover:bg-[#414141]">Set a reminder</Button>
       </div>
