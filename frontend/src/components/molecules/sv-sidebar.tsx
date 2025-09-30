@@ -4,28 +4,28 @@ import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, Sid
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "../atoms/dropdown-menu";
 import { ChevronUp } from "lucide-react";
 
-export function SVSidebar() {
+export function SVSidebar(user: {name: string}) {
   return (
     <Sidebar className="w-40 border-black text-[#f0f0f0]" >
         <SidebarHeader className="bg-[#292929] font-bold">Navigation</SidebarHeader>
         <SidebarContent className="bg-[#292929]">
             <SidebarMenu>
                 <SidebarMenuItem key="dashboard">
-                    <SidebarMenuButton asChild>
+                    <SidebarMenuButton className="hover:bg-[#969696]" asChild>
                         <Link href="/dashboard">
                             <Label>Dashboard</Label>
                         </Link>
                     </SidebarMenuButton>
                 </SidebarMenuItem>
                 <SidebarMenuItem key="statistics">
-                    <SidebarMenuButton asChild>
+                    <SidebarMenuButton className="hover:bg-[#969696]" asChild>
                         <Link href="/dashboard">
                             <Label>Statistics</Label>
                         </Link>
                     </SidebarMenuButton>
                 </SidebarMenuItem>
                 <SidebarMenuItem key="settings">
-                    <SidebarMenuButton asChild>
+                    <SidebarMenuButton className="hover:bg-[#969696]" asChild>
                         <Link href="/dashboard">
                             <Label>Settings</Label>
                         </Link>
@@ -37,15 +37,15 @@ export function SVSidebar() {
             <SidebarMenu>
                 <SidebarMenuItem>
                     <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
+                        <DropdownMenuTrigger className="hover:bg-[#969696]" asChild>
                             <SidebarMenuButton>
-                                <Label>Username</Label>
+                                <Label>{user.name}</Label>
                                 <ChevronUp className="ml-auto" />
                             </SidebarMenuButton>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent
                         side="top"
-                        className="w-[--radix-popper-anchor-width]">
+                        className="w-[--radix-popper-anchor-width] bg-[#969696]">
                             <DropdownMenuItem>
                                 <Link href="/account">
                                     <Label>Account</Label>

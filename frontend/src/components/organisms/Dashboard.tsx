@@ -26,7 +26,7 @@ export default function Dashboard({ user }: DashboardProps) {
   return (
   <div className="bg-[#1e1e1e] relative h-screen">
     <SidebarProvider defaultOpen={true}>
-    <SVSidebar />
+    <SVSidebar {...user}/>
     <div className="absolute inset-0 z-0">
         <DotGrid
           dotSize={4}
