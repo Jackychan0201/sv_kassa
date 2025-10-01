@@ -16,6 +16,19 @@ export class DailyRecordsService {
     private readonly shopRepo: Repository<Shop>,
   ) {}
 
+  async convertRecordToDecimal(record: DailyRecord): Promise<DailyRecord> {
+  return {
+    ...record,
+    revenueMainWithMargin: record.revenueMainWithMargin / 100,
+    revenueMainWithoutMargin: record.revenueMainWithoutMargin / 100,
+    revenueOrderWithMargin: record.revenueOrderWithMargin / 100,
+    revenueOrderWithoutMargin: record.revenueOrderWithoutMargin / 100,
+    mainStockValue: record.mainStockValue / 100,
+    orderStockValue: record.orderStockValue / 100,
+  };
+}
+
+
   async create(dto: CreateDailyRecordDto, user: JwtShop): Promise<DailyRecord> {
     if (user.role === ShopRole.SHOP) {
       dto.shopId = user.shopId;
@@ -51,7 +64,8 @@ export class DailyRecordsService {
       recordDate: isoDate,
     });
 
-    return this.dailyRecordRepo.save(record);
+    const saved = this.dailyRecordRepo.save(record);
+    return this.convertRecordToDecimal(await saved);
   }
 
 
@@ -71,10 +85,8 @@ export class DailyRecordsService {
 
     const [year, month, day] = record.recordDate.split('-');
     record.recordDate = `${day}.${month}.${year}`;
-
-    console.log('Retrieved record:', record);
-
-    return record;
+    const convertedRecord = await this.convertRecordToDecimal(record);
+    return convertedRecord;
   }
 
   async findByDateRange(
@@ -118,9 +130,9 @@ export class DailyRecordsService {
       record.recordDate = `${day}.${month}.${year}`;
     }
 
-    return result;
+    const convertedRecords = await Promise.all(result.map(r => this.convertRecordToDecimal(r)));
+    return convertedRecords;
   }
-
 
   async findAll(user: JwtShop, shopId?: string): Promise<DailyRecord[]> {
     if (user.role === ShopRole.SHOP) {
@@ -149,7 +161,9 @@ export class DailyRecordsService {
       record.recordDate = `${day}.${month}.${year}`;
     }
 
-    return result;
+    const convertedRecords = await Promise.all(result.map(r => this.convertRecordToDecimal(r)));
+
+    return convertedRecords;
   }
 
   async updateById(user: JwtShop, recordId: string, dto: UpdateDailyRecordDto): Promise<DailyRecord> {

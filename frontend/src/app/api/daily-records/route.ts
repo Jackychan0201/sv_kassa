@@ -21,3 +21,21 @@ export async function GET(req: NextRequest) {
   const data = await response.json();
   return NextResponse.json(data, { status: response.status });
 }
+
+export async function POST(req: NextRequest) {
+  const cookie = req.headers.get("cookie") ?? "";
+  const body = await req.json();
+
+  const response = await fetch("http://localhost:3000/daily-records", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      cookie,
+    },
+    credentials: "include",
+    body: JSON.stringify(body),
+  });
+
+  const data = await response.json();
+  return NextResponse.json(data, { status: response.status });
+}

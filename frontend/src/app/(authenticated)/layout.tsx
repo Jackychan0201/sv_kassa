@@ -1,9 +1,9 @@
-import { cookies } from "next/headers";
-import { redirect } from "next/navigation";
 import { SidebarProvider } from "@/components/atoms/sidebar";
 import { SVSidebar } from "@/components/organisms/sv-sidebar";
 import DotGrid from "@/components/organisms/DotGrid";
 import { UserProvider } from "@/components/providers/user-provider";
+import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
 
 async function checkAuth() {
   const cookieStore = await cookies();

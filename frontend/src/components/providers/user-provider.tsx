@@ -6,6 +6,7 @@ type User = {
   name: string;
   role: string;
   email: string;
+  shopId: string;
 };
 
 const UserContext = createContext<User | null>(null);

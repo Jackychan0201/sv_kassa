@@ -1,12 +1,12 @@
 export type DailyRecord = {
   id: string;
   shopId: string;
-  revenueMainWithMargin: string;
-  revenueMainWithoutMargin: string;
-  revenueOrderWithMargin: string;
-  revenueOrderWithoutMargin: string;
-  mainStockValue: string;
-  orderStockValue: string;
+  revenueMainWithMargin: number;
+  revenueMainWithoutMargin: number;
+  revenueOrderWithMargin: number;
+  revenueOrderWithoutMargin: number;
+  mainStockValue: number;
+  orderStockValue: number;
   recordDate: string;
   createdAt: string;
   updatedAt: string;
