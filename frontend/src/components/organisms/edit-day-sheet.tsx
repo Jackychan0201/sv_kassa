@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { getRecordByDate, updateDailyRecord } from "@/lib/api";
 import { Button } from "../atoms/button";
 import { DailyRecord } from "@/lib/types";
+import { LoadingFallback } from "../molecules/loading-fallback";
 
 interface EditDaySheetProps {
   formattedDate: string;
@@ -125,6 +126,10 @@ export function EditDaySheet({ formattedDate, open, onClose, onSaved }: EditDayS
         </SheetHeader>
 
         <div className="flex flex-col gap-4">
+          {!record ? (
+            <LoadingFallback message="Loading record..." />
+          ) : (
+            <>
           <div>
             <Label htmlFor="mainStockValue" className="text-md text-[#f0f0f0] ml-6">Main stock value:</Label>
             <Input id="mainStockValue" value={mainStockValue} onChange={(e) => setMainStockValue(e.target.value)} className="w-[90%] mx-auto border-[#3f3e3e] text-[#f0f0f0]" placeholder="e.g. 12345.00" autoComplete="off" />
@@ -154,6 +159,7 @@ export function EditDaySheet({ formattedDate, open, onClose, onSaved }: EditDayS
             <Label htmlFor="orderRevenueWithoutMargin" className="text-md text-[#f0f0f0] ml-6">Revenue order stock (without margin):</Label>
             <Input id="orderRevenueWithoutMargin" value={orderRevenueWithoutMargin} onChange={(e) => setOrderRevenueWithoutMargin(e.target.value)} className="w-[90%] mx-auto border-[#3f3e3e] text-[#f0f0f0]" placeholder="e.g. 422.49" autoComplete="off" />
           </div>
+          </>)}
         </div>
 
         <div className="mt-auto mb-4 flex flex-col w-[90%] mx-auto gap-2">

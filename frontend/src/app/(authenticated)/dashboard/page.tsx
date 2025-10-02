@@ -9,6 +9,7 @@ import { getTodaysRecord } from "@/lib/api";
 import { DailyRecord } from "@/lib/types";
 import { CloseDaySheet } from "@/components/organisms/close-day-sheet";
 import { EditDayDialog } from "@/components/molecules/edit-day-dialog";
+import { LoadingFallback } from "@/components/molecules/loading-fallback";
 
 export default function DashboardPage() {
   const user = useUser();
@@ -33,7 +34,10 @@ export default function DashboardPage() {
   }, []);
 
   let recordData: (number | null)[] = [];
-  if (!record || record.length === 0) {
+  if (!record) {
+    return <LoadingFallback message="Loading..."/>;
+  }
+  if (record.length === 0) {
     recordData = [null, null, null, null, null, null];
   } else {
     recordData = [
