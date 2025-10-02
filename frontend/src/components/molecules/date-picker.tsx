@@ -63,6 +63,7 @@ export function DatePicker({ value, onChange }: DatePickerProps) {
             selected={selectedDate}
             captionLayout="dropdown"
             onSelect={handleSelect}
+            disabled={{ after: new Date() }}
           />
         </PopoverContent>
       </Popover>
