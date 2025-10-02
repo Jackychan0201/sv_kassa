@@ -29,6 +29,9 @@ export class Shop {
   })
   role: ShopRole;
 
+  @Column({ type: 'varchar', nullable: true })
+  timer: string | null;
+
   @OneToMany(() => DailyRecord, (record) => record.shop)
   dailyRecords: DailyRecord[];
 

@@ -27,6 +27,7 @@ export class ShopsService {
       email: dto.email,
       password: hashedPassword,
       role: dto.role || ShopRole.SHOP,
+      timer: dto.timer || null,
     });
 
     const savedShop = this.shopRepository.save(shop);
@@ -51,6 +52,7 @@ export class ShopsService {
     if (dto.password) shop.password = await bcrypt.hash(dto.password, 10);
     if (dto.name) shop.name = dto.name;
     if (dto.role) shop.role = dto.role;
+    if (dto.timer) shop.timer = dto.timer;
 
     const updatedShop = this.shopRepository.save(shop);
     const { password, ...result } = await updatedShop;
@@ -68,7 +70,7 @@ export class ShopsService {
   }
 
   findAll(): Promise<Shop[]> {
-    return this.shopRepository.find({select: ['id', 'name', 'email', 'role', 'createdAt', 'updatedAt']});
+    return this.shopRepository.find({select: ['id', 'name', 'email', 'role', 'timer', 'createdAt', 'updatedAt']});
   }
 
   async findById(user: JwtShop, id: string): Promise<Shop> {
@@ -77,7 +79,7 @@ export class ShopsService {
     }
     const shop = await this.shopRepository.findOne({
          where: { id },
-         select: ['id', 'name', 'email', 'role', 'createdAt', 'updatedAt'], 
+         select: ['id', 'name', 'email', 'role', 'timer', 'createdAt', 'updatedAt'], 
         });
     if (!shop) {
       throw new NotFoundException(`Shop with id ${id} not found`);
@@ -99,7 +101,7 @@ export class ShopsService {
     }
     const shop = await this.shopRepository.findOne({
       where: { name },
-      select: ['id', 'name', 'email', 'role', 'createdAt', 'updatedAt'],
+      select: ['id', 'name', 'email', 'role', 'timer', 'createdAt', 'updatedAt'],
     });
 
     if (!shop) {
