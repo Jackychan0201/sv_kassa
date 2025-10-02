@@ -82,7 +82,7 @@ export default function Login() {
         </CardContent>
 
         <CardFooter className="flex flex-col gap-2">
-          <Button type="submit" className="w-full" onClick={handleSubmit}>
+          <Button type="submit" className="w-[60%] transition text-[#f0f0f0] delay-50 duration-200 ease-in-out hover:-translate-y-0 hover:scale-105 hover:bg-[#414141]" onClick={handleSubmit}>
             Login
           </Button>
         </CardFooter>
