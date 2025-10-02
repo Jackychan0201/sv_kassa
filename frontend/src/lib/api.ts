@@ -54,6 +54,45 @@ export const getTodaysRecord = async (date: string): Promise<DailyRecord[]> => {
   return res.json();
 };
 
+export const getRecordByDate = async (date: string): Promise<DailyRecord[]> => {
+  const res = await fetch(
+    `/api/daily-records/by-date?fromDate=${date}&toDate=${date}`,
+    {
+      method: "GET",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+    }
+  );
+
+  if (!res.ok) throw new Error("Failed to fetch daily record");
+  return res.json();
+};
+
+export const updateDailyRecord = async (record: {
+  id: string;
+  mainStockValue: number;
+  orderStockValue: number;
+  revenueMainWithMargin: number;
+  revenueMainWithoutMargin: number;
+  revenueOrderWithMargin: number;
+  revenueOrderWithoutMargin: number;
+}) => {
+  console.log(record);
+  const res = await fetch(`/api/daily-records/${record.id}`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    credentials: "include",
+    body: JSON.stringify(record),
+  });
+
+  if (!res.ok) {
+    const errorData = await res.json();
+    throw new Error(errorData.message || "Failed to update daily record");
+  }
+
+  return res.json();
+}
+
 export const postDailyRecord = async (record: {
   shopId: string;
   mainStockValue: number;

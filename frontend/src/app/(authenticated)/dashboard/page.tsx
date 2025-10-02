@@ -8,7 +8,6 @@ import { useEffect, useState } from "react";
 import { getTodaysRecord } from "@/lib/api";
 import { DailyRecord } from "@/lib/types";
 import { CloseDaySheet } from "@/components/organisms/close-day-sheet";
-import { Edit } from "lucide-react";
 import { EditDayDialog } from "@/components/molecules/edit-day-dialog";
 
 export default function DashboardPage() {
@@ -70,7 +69,7 @@ export default function DashboardPage() {
           formattedDate={formattedDate}
           onSaved={loadRecord}
         />
-        <EditDayDialog />
+        <EditDayDialog onSaved={loadRecord}/>
         <Button className="w-50 transition text-[#f0f0f0] delay-150 duration-300 ease-in-out hover:-translate-y-0 hover:scale-110 hover:bg-[#414141]">Set a reminder</Button>
       </div>
     </div>
