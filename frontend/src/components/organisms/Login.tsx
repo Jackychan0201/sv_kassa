@@ -48,34 +48,34 @@ export default function Login() {
         />
       </div>
 
-      <Card className="relative z-10 w-96 shadow-lg border-2 border-[#333333]">
+      <Card className="relative z-10 w-96 shadow-lg border-2 bg-[#292929] border-[#3f3e3e]">
         <CardHeader className="text-center">
-          <CardTitle className="text-2xl text-[#212121]">Login</CardTitle>
+          <CardTitle className="text-2xl text-[#f0f0f0]">Login</CardTitle>
         </CardHeader>
 
         <CardContent>
           <form onSubmit={handleSubmit} className="flex flex-col gap-4">
             <div className="grid gap-1">
-              <Label htmlFor="email">Email</Label>
+              <Label className="text-[#f0f0f0]" htmlFor="email">Email</Label>
               <Input
                 type="email"
                 id="email"
                 placeholder="Enter your email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full"
+                className="w-full text-[#f0f0f0] border-[#3f3e3e]"
               />
             </div>
 
             <div className="grid gap-1">
-              <Label htmlFor="password">Password</Label>
+              <Label className="text-[#f0f0f0]" htmlFor="password">Password</Label>
               <Input
                 type="password"
                 id="password"
                 placeholder="Enter your password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full"
+                className="w-full text-[#f0f0f0] border-[#3f3e3e]"
               />
             </div>
           </form>
