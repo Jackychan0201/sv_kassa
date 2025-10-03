@@ -10,6 +10,7 @@ import { DailyRecord } from "@/lib/types";
 import { CloseDaySheet } from "@/components/organisms/close-day-sheet";
 import { EditDayDialog } from "@/components/molecules/edit-day-dialog";
 import { LoadingFallback } from "@/components/molecules/loading-fallback";
+import { SetReminderDialog } from "@/components/molecules/set-reminder-dialog";
 
 export default function DashboardPage() {
   const user = useUser();
@@ -74,7 +75,7 @@ export default function DashboardPage() {
           onSaved={loadRecord}
         />
         <EditDayDialog onSaved={loadRecord}/>
-        <Button className="w-50 transition text-[#f0f0f0] delay-150 duration-300 ease-in-out hover:-translate-y-0 hover:scale-110 hover:bg-[#414141]">Set a reminder</Button>
+        <SetReminderDialog />
       </div>
     </div>
   );

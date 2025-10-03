@@ -1,10 +1,11 @@
 import { SidebarProvider } from "@/components/atoms/sidebar";
 import { SVSidebar } from "@/components/organisms/sv-sidebar";
 import DotGrid from "@/components/organisms/DotGrid";
-import { UserProvider } from "@/components/providers/user-provider";
+import { UserProvider, useUser } from "@/components/providers/user-provider";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { TimerNotification } from "@/components/molecules/notification";
+import { TimerNotificationClient } from "@/components/molecules/timer-notification-client";
 
 async function checkAuth() {
   const cookieStore = await cookies();
@@ -51,7 +52,7 @@ export default async function AuthenticatedLayout({
 
           <div className="relative z-10 ml-45 mt-3 text-[#f0f0f0]">
             {children}
-            <TimerNotification time={user.timer}/>
+            <TimerNotificationClient />
           </div>
         </SidebarProvider>
       </div>

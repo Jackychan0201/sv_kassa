@@ -1,30 +1,38 @@
 "use client";
 
-import { createContext, useContext } from "react";
+import { createContext, useContext, useState } from "react";
 
-type User = {
+export type User = {
   name: string;
   role: string;
   email: string;
   shopId: string;
+  timer: string;
 };
 
-const UserContext = createContext<User | null>(null);
+type UserContextValue = {
+  user: User;
+  setTimer: (time: string) => void;
+};
+
+const UserContext = createContext<UserContextValue | null>(null);
 
 export function UserProvider({
-  user,
+  user: initialUser,
   children,
 }: {
   user: User;
   children: React.ReactNode;
 }) {
-  return <UserContext.Provider value={user}>{children}</UserContext.Provider>;
+  const [user, setUser] = useState<User>(initialUser);
+
+  const setTimer = (time: string) => setUser((u) => ({ ...u, timer: time }));
+
+  return <UserContext.Provider value={{ user, setTimer }}>{children}</UserContext.Provider>;
 }
 
 export function useUser() {
   const ctx = useContext(UserContext);
-  if (!ctx) {
-    throw new Error("useUser must be used within a UserProvider");
-  }
+  if (!ctx) throw new Error("useUser must be used within a UserProvider");
   return ctx;
 }

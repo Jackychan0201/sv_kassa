@@ -117,3 +117,19 @@ export const postDailyRecord = async (record: {
 
   return res.json();
 };
+
+export const saveReminderTime = async (shopId: string, time: string) => {
+  const res = await fetch(`/api/shops/${shopId}`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    credentials: "include",
+    body: JSON.stringify({ id: shopId, timer: time }),
+  });
+
+  if (!res.ok) {
+    const errorData = await res.json();
+    throw new Error(errorData.message || "Failed to save reminder");
+  }
+
+  return res.json();
+};
