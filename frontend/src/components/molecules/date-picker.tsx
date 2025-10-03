@@ -13,11 +13,12 @@ import {
 } from "@/components/atoms/popover";
 
 interface DatePickerProps {
+  title: string;
   value?: Date | null;
   onChange?: (date: Date) => void;
 }
 
-export function DatePicker({ value, onChange }: DatePickerProps) {
+export function DatePicker({ title, value, onChange }: DatePickerProps) {
   const [open, setOpen] = React.useState(false);
   const [internalDate, setInternalDate] = React.useState<Date | undefined>(undefined);
 
@@ -36,7 +37,7 @@ export function DatePicker({ value, onChange }: DatePickerProps) {
   return (
     <div className="flex flex-col gap-3">
       <Label htmlFor="date" className="px-1">
-        Date
+        {title}
       </Label>
       <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger asChild>

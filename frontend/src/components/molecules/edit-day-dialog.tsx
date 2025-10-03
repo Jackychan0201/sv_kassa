@@ -52,7 +52,7 @@ export function EditDayDialog({ onSaved }: EditDayDialogProps) {
               <DialogDescription className="text-[#f0f0f0]">Pick a date to edit</DialogDescription>
             </DialogHeader>
 
-            <DatePicker value={selectedDate} onChange={setSelectedDate} />
+            <DatePicker title="Date" value={selectedDate} onChange={setSelectedDate} />
 
             <DialogFooter>
               <DialogClose asChild>

@@ -83,14 +83,8 @@ export function GetTableDialog() {
           </DialogHeader>
 
           <div className="flex gap-4 mt-2">
-            <div>
-              <p className="text-sm mb-1">From date</p>
-              <DatePicker value={fromDate} onChange={setFromDate} />
-            </div>
-            <div>
-              <p className="text-sm mb-1">To date</p>
-              <DatePicker value={toDate} onChange={setToDate} />
-            </div>
+            <DatePicker title="From date" value={fromDate} onChange={setFromDate} />
+            <DatePicker title="To date" value={toDate} onChange={setToDate} />
           </div>
 
           <div className="mt-4">
