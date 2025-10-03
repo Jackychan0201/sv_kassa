@@ -1,8 +1,16 @@
+import { Label } from "@/components/atoms/label";
+import { GetTableDialog } from "@/components/molecules/get-table-dialog";
+
 export default function StatisticsPage() {
   return (
-    <>
-      <h1 className="text-4xl font-bold mt-8">Statistics</h1>
-      <p className="mb-8">Here are your stats.</p>
-    </>
+   <div>
+      <div className="flex flex-col">
+        <Label className="text-3xl font-bold">Statistics</Label>
+        <Label className="text-lg">Get advanced statistics about the shop</Label>
+      </div>
+      <div className="flex flex-row mt-10 gap-x-5">
+        <GetTableDialog/>
+      </div>
+    </div>
   );
 }

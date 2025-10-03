@@ -40,20 +40,6 @@ export const getDailyRecords = async () => {
   return res.json();
 };
 
-export const getTodaysRecord = async (date: string): Promise<DailyRecord[]> => {
-  const res = await fetch(
-    `/api/daily-records/by-date?fromDate=${date}&toDate=${date}`,
-    {
-      method: "GET",
-      headers: { "Content-Type": "application/json" },
-      credentials: "include",
-    }
-  );
-
-  if (!res.ok) throw new Error("Failed to fetch daily record");
-  return res.json();
-};
-
 export const getRecordByDate = async (date: string): Promise<DailyRecord[]> => {
   const res = await fetch(
     `/api/daily-records/by-date?fromDate=${date}&toDate=${date}`,
@@ -67,6 +53,21 @@ export const getRecordByDate = async (date: string): Promise<DailyRecord[]> => {
   if (!res.ok) throw new Error("Failed to fetch daily record");
   return res.json();
 };
+
+export const getRecordsByRange = async (fromDate: string, toDate: string): Promise<DailyRecord[]> => {
+  const res = await fetch(
+    `/api/daily-records/by-date?fromDate=${fromDate}&toDate=${toDate}`,
+    {
+      method: "GET",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+    }
+  );
+
+  if (!res.ok) throw new Error("Failed to fetch daily records by range");
+  return res.json();
+};
+
 
 export const updateDailyRecord = async (record: {
   id: string;

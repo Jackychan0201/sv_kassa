@@ -1,11 +1,10 @@
 "use client";
 
-import { Button } from "@/components/atoms/button";
 import { Label } from "@/components/atoms/label";
 import { useUser } from "@/components/providers/user-provider";
 
 import { useEffect, useState } from "react";
-import { getTodaysRecord } from "@/lib/api";
+import { getRecordByDate } from "@/lib/api";
 import { DailyRecord } from "@/lib/types";
 import { CloseDaySheet } from "@/components/organisms/close-day-sheet";
 import { EditDayDialog } from "@/components/molecules/edit-day-dialog";
@@ -13,7 +12,6 @@ import { LoadingFallback } from "@/components/molecules/loading-fallback";
 import { SetReminderDialog } from "@/components/molecules/set-reminder-dialog";
 
 export default function DashboardPage() {
-  const user = useUser();
   const today = new Date();
   const formattedDate = `${(today.getDate() < 10 ? "0" : "")}${today.getDate()}.${
     today.getMonth() + 1 < 10 ? "0" : ""
@@ -23,7 +21,7 @@ export default function DashboardPage() {
 
   const loadRecord = async () => {
     try {
-      const data = await getTodaysRecord(formattedDate);
+      const data = await getRecordByDate(formattedDate);
       setRecord(data);
     } catch (err) {
       console.error(err);

@@ -1,4 +1,5 @@
 import { Label } from "../atoms/label";
+import { Spinner } from "../atoms/spinner";
 
 interface LoadingFallbackProps {
   message?: string;
@@ -13,7 +14,7 @@ export function LoadingFallback({ message = "Loading..." }: LoadingFallbackProps
       <div
         className="border-5 border-black rounded-lg flex flex-col gap-y-5 items-center justify-center w-[20%] h-[20%] text-center text-[#f0f0f0] animate-pulse">
         <Label className="text-3xl">{message}</Label>
-        <div className="w-8 h-8 border-4 border-t-gray-400 border-gray-700 rounded-full animate-spin"></div>
+        <Spinner className="size-10"/>
       </div>
     </div>
   );
