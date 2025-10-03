@@ -1,4 +1,5 @@
 import { Label } from "@/components/atoms/label";
+import { GetChartDialog } from "@/components/molecules/get-chart-dialog";
 import { GetTableDialog } from "@/components/molecules/get-table-dialog";
 
 export default function StatisticsPage() {
@@ -10,6 +11,7 @@ export default function StatisticsPage() {
       </div>
       <div className="flex flex-row mt-10 gap-x-5">
         <GetTableDialog/>
+        <GetChartDialog/>
       </div>
     </div>
   );
