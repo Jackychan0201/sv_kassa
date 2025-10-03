@@ -5,10 +5,11 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "
 import { Input } from "../atoms/input";
 import { Label } from "../atoms/label";
 import { toast } from "sonner";
-import { getRecordByDate, updateDailyRecord } from "@/lib/api";
+import { getRecordByDate, postDailyRecord, updateDailyRecord } from "@/lib/api";
 import { Button } from "../atoms/button";
 import { DailyRecord } from "@/lib/types";
 import { LoadingFallback } from "../molecules/loading-fallback";
+import { useUser } from "../providers/user-provider";
 
 interface EditDaySheetProps {
   formattedDate: string;
@@ -18,6 +19,7 @@ interface EditDaySheetProps {
 }
 
 export function EditDaySheet({ formattedDate, open, onClose, onSaved }: EditDaySheetProps) {
+  const user = useUser();
   const [internalOpen, setInternalOpen] = useState(open);
   const [mainStockValue, setMainStockValue] = useState("");
   const [orderStockValue, setOrderStockValue] = useState("");
@@ -88,23 +90,38 @@ export function EditDaySheet({ formattedDate, open, onClose, onSaved }: EditDayS
         }
       }
 
-      await updateDailyRecord({
-        id: record?.[0]?.id || "", 
-        mainStockValue: Number(mainStockValue),
-        orderStockValue: Number(orderStockValue),
-        revenueMainWithMargin: Number(mainRevenueWithMargin),
-        revenueMainWithoutMargin: Number(mainRevenueWithoutMargin),
-        revenueOrderWithMargin: Number(orderRevenueWithMargin),
-        revenueOrderWithoutMargin: Number(orderRevenueWithoutMargin),
-      });
+      if (record && record.length > 0) {
+        await updateDailyRecord({
+          id: record[0].id,
+          mainStockValue: Number(mainStockValue),
+          orderStockValue: Number(orderStockValue),
+          revenueMainWithMargin: Number(mainRevenueWithMargin),
+          revenueMainWithoutMargin: Number(mainRevenueWithoutMargin),
+          revenueOrderWithMargin: Number(orderRevenueWithMargin),
+          revenueOrderWithoutMargin: Number(orderRevenueWithoutMargin),
+        });
+      } else {
+        await postDailyRecord({
+          shopId: user.user.shopId,
+          mainStockValue: Number(mainStockValue),
+          orderStockValue: Number(orderStockValue),
+          revenueMainWithMargin: Number(mainRevenueWithMargin),
+          revenueMainWithoutMargin: Number(mainRevenueWithoutMargin),
+          revenueOrderWithMargin: Number(orderRevenueWithMargin),
+          revenueOrderWithoutMargin: Number(orderRevenueWithoutMargin),
+          recordDate: formattedDate,
+        });
+      }
 
-      toast.success("Data updated successfully!");
+      toast.success("Data saved successfully!");
       handleOpenChange(false);
+
       if (formattedDate === formattedToday) onSaved?.();
     } catch (err: any) {
       toast.error(err.message || "Failed to save record");
     }
   };
+
 
   const handleReset = () => {
     setMainStockValue("");

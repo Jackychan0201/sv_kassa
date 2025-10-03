@@ -77,7 +77,6 @@ export const updateDailyRecord = async (record: {
   revenueOrderWithMargin: number;
   revenueOrderWithoutMargin: number;
 }) => {
-  console.log(record);
   const res = await fetch(`/api/daily-records/${record.id}`, {
     method: "PATCH",
     headers: { "Content-Type": "application/json" },
