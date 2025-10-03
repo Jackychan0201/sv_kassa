@@ -57,7 +57,7 @@ export function CloseDaySheet({ disabled, formattedDate, onSaved }: CloseDayShee
 
   try {
     const record = {
-      shopId: user.shopId,
+      shopId: user.user.shopId,
       mainStockValue: Number(fields[0].value),
       orderStockValue: Number(fields[1].value),
       revenueMainWithMargin: Number(fields[2].value),
