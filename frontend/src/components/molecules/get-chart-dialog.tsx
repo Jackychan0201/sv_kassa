@@ -119,43 +119,51 @@ export function GetChartDialog() {
           </div>
 
           {/* Combobox */}
-          <div className="mt-4">
+            <div className="mt-4">
             <p className="text-sm mb-1">Select metric</p>
             <Popover open={comboOpen} onOpenChange={setComboOpen}>
-              <PopoverTrigger asChild>
+                <PopoverTrigger asChild>
                 <Button
-                  variant="outline"
-                  role="combobox"
-                  className="w-[300px] justify-between bg-[#3a3a3a] text-[#f0f0f0]"
+                    variant="outline"
+                    role="combobox"
+                    className="w-[300px] justify-between bg-[#3a3a3a] text-[#f0f0f0] hover:bg-[#414141] hover:text-[#f0f0f0]"
                 >
-                  {selectedOption ? selectedOption.label : "Select metric"}
-                  <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                    {selectedOption ? selectedOption.label : "Select metric"}
+                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                 </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-[300px] p-0 bg-[#292929] text-[#f0f0f0]">
-                <Command>
-                  <CommandGroup>
-                    {chartOptions.map((opt) => (
-                      <CommandItem
-                        key={opt.key}
-                        onSelect={() => {
-                          setSelectedMetric(opt.key);
-                          setComboOpen(false);
-                        }}
-                      >
-                        <Check
-                          className={`mr-2 h-4 w-4 ${
-                            selectedMetric === opt.key ? "opacity-100" : "opacity-0"
-                          }`}
-                        />
-                        {opt.label}
-                      </CommandItem>
-                    ))}
-                  </CommandGroup>
-                </Command>
-              </PopoverContent>
+                </PopoverTrigger>
+                <PopoverContent className="w-[300px] p-0 bg-[#545454] text-[#f0f0f0]">
+                    <Command className="bg-[#545454]">
+                        <CommandGroup className="bg-[#545454]">
+                        {chartOptions.map((opt) => (
+                            <CommandItem
+                            key={opt.key}
+                            onSelect={() => {
+                                setSelectedMetric(opt.key);
+                                setComboOpen(false);
+                            }}
+                            className="
+                                bg-[#545454] text-[#f0f0f0] cursor-pointer
+                                data-[highlighted]:bg-[#292929] 
+                                data-[highlighted]:text-[#f0f0f0]
+                            "
+                            >
+                            <Check
+                                className={`mr-2 h-4 w-4 ${
+                                selectedMetric === opt.key ? "opacity-100" : "opacity-0"
+                                }`}
+                            />
+                            {opt.label}
+                            </CommandItem>
+                        ))}
+                        </CommandGroup>
+                    </Command>
+                </PopoverContent>
+
+
             </Popover>
-          </div>
+            </div>
+
 
           {/* Chart */}
             <div className="mt-6">
