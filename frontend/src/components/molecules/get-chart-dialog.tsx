@@ -183,7 +183,11 @@ export function GetChartDialog() {
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis dataKey="recordDate" />
                     <YAxis />
-                    <ChartTooltip content={<ChartTooltipContent />} />
+                    <ChartTooltip 
+                    content={
+                        <ChartTooltipContent hideIndicator={true}/>
+                    } 
+                    />
                     <Line
                         type="monotone"
                         dataKey={selectedMetric}
