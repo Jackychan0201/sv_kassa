@@ -136,28 +136,90 @@ export default function StatisticsPage() {
 
   // --- Advice ---
   const adviceList: string[] = [];
-  if (gmroi < 1.0)
-    adviceList.push(
-      "GMROI is critical. Losing money on inventory. Review supply costs and slow-moving stock."
-    );
-  else if (gmroi >= 1.0 && gmroi < 2.0)
-    adviceList.push(
-      "GMROI below 2.0. Consider markdown strategies and SKU rationalization."
-    );
-  else adviceList.push("GMROI is healthy. Maintain current strategies and scale successful practices.");
 
-  if (overallMargin < 25)
-    adviceList.push("Overall margin percentage is low. Check product pricing, discounts, and cost of goods.");
-
-  if (dailyRevenueGrowth > 20 || dailyRevenueGrowth < -20)
+  // --- GMROI Advice (Highest Priority) ---
+  if (gmroi < 1.0) {
     adviceList.push(
-      "Daily revenue growth is volatile. Consider smoothing trends over weekly periods to make better decisions."
+      `GMROI: Critical (Current: ${gmroi.toFixed(2)}). Losing money on inventory. Review supply costs and slow-moving stock.`
     );
+  } else if (gmroi >= 1.0 && gmroi < 2.0) {
+    adviceList.push(
+      `GMROI: Warning (Current: ${gmroi.toFixed(2)}). Consider markdown strategies and SKU rationalization.`
+    );
+  } else if (gmroi >= 2.0 && gmroi < 3.0) {
+    adviceList.push(
+      `GMROI: Good (Current: ${gmroi.toFixed(2)}). Maintain current strategies and scale successful practices.`
+    );
+  } else {
+    adviceList.push(
+      `GMROI: Excellent (Current: ${gmroi.toFixed(2)}). Maintain and scale successful practices.`
+    );
+  }
 
-  if (inventoryTurnover > 12)
-    adviceList.push("Inventory turnover is high. Ensure stock levels are sufficient to prevent stockouts.");
-  else if (inventoryTurnover < 3)
-    adviceList.push("Inventory turnover is low. Consider optimizing stock levels or increasing sales velocity.");
+  // --- Daily Revenue Growth Advice ---
+  if (dailyRevenueGrowth > 20 || dailyRevenueGrowth < -20) {
+    adviceList.push(
+      `Daily Revenue Growth: Volatile (Current: ${dailyRevenueGrowth.toFixed(2)}%).`
+    );
+  } else if (dailyRevenueGrowth >= 5) {
+    adviceList.push(
+      `Daily Revenue Growth: Excellent (Current: ${dailyRevenueGrowth.toFixed(2)}%). Keep momentum steady.`
+    );
+  } else if (dailyRevenueGrowth >= 2) {
+    adviceList.push(
+      `Daily Revenue Growth: Good (Current: ${dailyRevenueGrowth.toFixed(2)}%). Maintain steady growth.`
+    );
+  } else if (dailyRevenueGrowth >= -2) {
+    adviceList.push(
+      `Daily Revenue Growth: Stable (Current: ${dailyRevenueGrowth.toFixed(2)}%). Baseline performance maintained.`
+    );
+  } else if (dailyRevenueGrowth >= -5) {
+    adviceList.push(
+      `Daily Revenue Growth: Warning (Current: ${dailyRevenueGrowth.toFixed(2)}%). Monitor sales trends closely.`
+    );
+  }
+
+  // --- Inventory Turnover Advice ---
+  if (inventoryTurnover > 12) {
+    adviceList.push(
+      `Inventory Turnover: High (Current: ${inventoryTurnover.toFixed(2)}). Ensure stock levels prevent stockouts.`
+    );
+  } else if (inventoryTurnover >= 8) {
+    adviceList.push(
+      `Inventory Turnover: Excellent (Current: ${inventoryTurnover.toFixed(2)}). Efficient stock movement.`
+    );
+  } else if (inventoryTurnover >= 5) {
+    adviceList.push(
+      `Inventory Turnover: Good (Current: ${inventoryTurnover.toFixed(2)}). Maintain current sales velocity.`
+    );
+  } else if (inventoryTurnover >= 3) {
+    adviceList.push(
+      `Inventory Turnover: Average (Current: ${inventoryTurnover.toFixed(2)}). Consider optimizing stock levels.`
+    );
+  } else {
+    adviceList.push(
+      `Inventory Turnover: Poor (Current: ${inventoryTurnover.toFixed(2)}). Review inventory and sales strategies.`
+    );
+  }
+
+  // --- Overall Margin Percentage Advice ---
+  if (overallMargin < 25) {
+    adviceList.push(
+      `Overall Margin: Warning (Current: ${overallMargin.toFixed(2)}%). Check pricing, discounts, and cost of goods.`
+    );
+  } else if (overallMargin >= 25 && overallMargin < 30.9) {
+    adviceList.push(
+      `Overall Margin: Industry Average (Current: ${overallMargin.toFixed(2)}%). Maintain competitive pricing.`
+    );
+  } else if (overallMargin >= 30.9 && overallMargin < 50) {
+    adviceList.push(
+      `Overall Margin: Good (Current: ${overallMargin.toFixed(2)}%). Keep pricing and margins steady.`
+    );
+  } else {
+    adviceList.push(
+      `Overall Margin: Excellent (Current: ${overallMargin.toFixed(2)}%). Strong profitability achieved.`
+    );
+  }
 
   // --- Additional stats calculations ---
   const calcStats = (values: number[]) => ({
@@ -252,7 +314,7 @@ export default function StatisticsPage() {
 
           {/* Right column: Advice */}
           <div className="flex-1 mt-4 lg:mt-0">
-            <div className="p-4 rounded-md bg-[#292929] flex flex-col justify-start h-55">
+            <div className="p-4 rounded-md bg-[#292929] flex flex-col justify-start h-70">
               <Label className="font-semibold text-xl text-[#f0f0f0] mb-2">Advice</Label>
               <div className="flex flex-col gap-1">
                 {adviceList.map((item, idx) => (
