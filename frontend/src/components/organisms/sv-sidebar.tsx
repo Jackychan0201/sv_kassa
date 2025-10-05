@@ -20,12 +20,10 @@ import {
 } from "../atoms/dropdown-menu";
 import { ChevronUp } from "lucide-react";
 import { logout } from "@/lib/api";
+import { useUser } from "../providers/user-provider";
 
-interface SVSidebarProps {
-  user: { name: string };
-}
-
-export function SVSidebar({ user }: SVSidebarProps) {
+export function SVSidebar() {
+  const user = useUser();
   const router = useRouter();
   const pathname = usePathname();
 
@@ -41,8 +39,9 @@ export function SVSidebar({ user }: SVSidebarProps) {
   const links = [
     { key: "dashboard", label: "Dashboard", href: "/dashboard" },
     { key: "statistics", label: "Statistics", href: "/statistics" },
-    { key: "settings", label: "Settings", href: "/settings" },
   ];
+
+  if (user.user.role === 'CEO') links.push({ key: "shops", label: "Manage shops", href: "/shops" });
 
   return (
     <Sidebar className="w-40 border-black text-[#f0f0f0]">
@@ -81,7 +80,7 @@ export function SVSidebar({ user }: SVSidebarProps) {
             <DropdownMenu>
               <DropdownMenuTrigger className="hover:bg-[#969696]" asChild>
                 <SidebarMenuButton>
-                  <Label>{user.name}</Label>
+                  <Label>{user.user.name}</Label>
                   <ChevronUp className="ml-auto" />
                 </SidebarMenuButton>
               </DropdownMenuTrigger>

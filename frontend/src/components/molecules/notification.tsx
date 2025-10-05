@@ -12,6 +12,8 @@ export function TimerNotification({ time }: TimerNotificationProps) {
   useEffect(() => {
     if (!("Notification" in window)) return;
 
+    if (!time) return;
+
     Notification.requestPermission().then((permission) => {
       if (permission !== "granted") return;
 
