@@ -210,6 +210,7 @@ export default function DashboardPage() {
           shops={shops}
           disabled={closeDayDisabled}
           onClosed={loadRecord}
+          formattedDate={formattedDate}
         />
       )}
       <EditDayDialog onSaved={loadRecord} />

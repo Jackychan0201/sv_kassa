@@ -10,23 +10,32 @@ import {
   SheetDescription,
   SheetTrigger,
 } from "@/components/atoms/sheet";
-import { Input } from "../atoms/input";
-import { Label } from "../atoms/label";
+import { Input } from "@/components/atoms/input";
+import { Label } from "@/components/atoms/label";
 import { toast } from "sonner";
 import { postDailyRecord } from "@/lib/api";
 import { useUser } from "@/components/providers/user-provider";
-import { LoadingFallback } from "../molecules/loading-fallback";
-
+import { LoadingFallback } from "@/components/molecules/loading-fallback";
 
 interface CloseDaySheetProps {
-  disabled: boolean;
+  disabled?: boolean;
   formattedDate: string;
   onSaved?: () => void;
+  shopId?: string;
+  open?: boolean;         
+  onClose?: () => void; 
 }
 
-export function CloseDaySheet({ disabled, formattedDate, onSaved }: CloseDaySheetProps) {
-  const user = useUser();
-  const [open, setOpen] = useState(false);
+export function CloseDaySheet({
+  disabled,
+  formattedDate,
+  onSaved,
+  shopId,
+  open = false,
+  onClose,
+}: CloseDaySheetProps) {
+  const { user } = useUser();
+  const [internalOpen, setInternalOpen] = useState(open);
 
   const [mainStockValue, setMainStockValue] = useState("");
   const [orderStockValue, setOrderStockValue] = useState("");
@@ -35,51 +44,13 @@ export function CloseDaySheet({ disabled, formattedDate, onSaved }: CloseDayShee
   const [orderRevenueWithMargin, setOrderRevenueWithMargin] = useState("");
   const [orderRevenueWithoutMargin, setOrderRevenueWithoutMargin] = useState("");
 
-  const handleSave = async () => {
-  const fields = [
-    { label: "Main stock value", value: mainStockValue },
-    { label: "Order stock value", value: orderStockValue },
-    { label: "Revenue main stock (with margin)", value: mainRevenueWithMargin },
-    { label: "Revenue main stock (without margin)", value: mainRevenueWithoutMargin },
-    { label: "Revenue order stock (with margin)", value: orderRevenueWithMargin },
-    { label: "Revenue order stock (without margin)", value: orderRevenueWithoutMargin },
-  ];
-
-  for (const field of fields) {
-    if (field.value.trim() === "") {
-      toast.error(`${field.label} cannot be empty`);
-      return;
+  const handleOpenChange = (isOpen: boolean) => {
+    setInternalOpen(isOpen);
+    if (!isOpen) {
+      handleReset();
+      onClose?.();
     }
-    if (isNaN(Number(field.value))) {
-      toast.error(`${field.label} must be a valid number`);
-      return;
-    }
-  }
-
-  if (!user || !user.user) {
-    return <LoadingFallback message="Loading user info..." />;
-  }
-
-  try {
-    const record = {
-      shopId: user.user.shopId as string,
-      mainStockValue: Number(fields[0].value),
-      orderStockValue: Number(fields[1].value),
-      revenueMainWithMargin: Number(fields[2].value),
-      revenueMainWithoutMargin: Number(fields[3].value),
-      revenueOrderWithMargin: Number(fields[4].value),
-      revenueOrderWithoutMargin: Number(fields[5].value),
-      recordDate: formattedDate,
-    };
-
-    await postDailyRecord(record);
-    toast.success("Data saved successfully!");
-    onSaved?.();
-    handleOpenChange(false);
-  } catch (err: any) {
-    toast.error(err.message || "Failed to save record");
-  }
-};
+  };
 
   const handleReset = () => {
     setMainStockValue("");
@@ -90,25 +61,69 @@ export function CloseDaySheet({ disabled, formattedDate, onSaved }: CloseDayShee
     setOrderRevenueWithoutMargin("");
   };
 
-  const handleOpenChange = (isOpen: boolean) => {
-    setOpen(isOpen);
-    if (!isOpen) {
-      handleReset();
+  const handleSave = async () => {
+    const fields = [
+      { label: "Main stock value", value: mainStockValue },
+      { label: "Order stock value", value: orderStockValue },
+      { label: "Revenue main stock (with margin)", value: mainRevenueWithMargin },
+      { label: "Revenue main stock (without margin)", value: mainRevenueWithoutMargin },
+      { label: "Revenue order stock (with margin)", value: orderRevenueWithMargin },
+      { label: "Revenue order stock (without margin)", value: orderRevenueWithoutMargin },
+    ];
+
+    for (const field of fields) {
+      if (field.value.trim() === "") {
+        toast.error(`${field.label} cannot be empty`);
+        return;
+      }
+      if (isNaN(Number(field.value))) {
+        toast.error(`${field.label} must be a valid number`);
+        return;
+      }
+    }
+
+    if (!user) {
+      return <LoadingFallback message="Loading user info..." />;
+    }
+
+    try {
+      const record = {
+        shopId: shopId || user.shopId as string,
+        mainStockValue: Number(fields[0].value),
+        orderStockValue: Number(fields[1].value),
+        revenueMainWithMargin: Number(fields[2].value),
+        revenueMainWithoutMargin: Number(fields[3].value),
+        revenueOrderWithMargin: Number(fields[4].value),
+        revenueOrderWithoutMargin: Number(fields[5].value),
+        recordDate: formattedDate,
+      };
+
+      await postDailyRecord(record);
+      toast.success("Data saved successfully!");
+      onSaved?.();
+      handleOpenChange(false);
+    } catch (err: any) {
+      toast.error(err.message || "Failed to save record");
     }
   };
 
   return (
-    <Sheet open={open} onOpenChange={handleOpenChange}>
-      <SheetTrigger asChild>
-        <Button
-          disabled={disabled}
-          className="disabled:opacity-50 w-50 transition text-[#f0f0f0] delay-150 duration-300 ease-in-out hover:-translate-y-0 hover:scale-110 hover:bg-[#414141]"
-        >
-          Close the day
-        </Button>
-      </SheetTrigger>
+    <Sheet open={internalOpen} onOpenChange={handleOpenChange}>
+      {!open && (
+        <SheetTrigger asChild>
+          <Button
+            disabled={disabled}
+            className="disabled:opacity-50 w-50 transition text-[#f0f0f0] delay-150 duration-300 ease-in-out hover:-translate-y-0 hover:scale-110 hover:bg-[#414141]"
+          >
+            Close the day
+          </Button>
+        </SheetTrigger>
+      )}
 
-      <SheetContent side="right" className="h-full flex flex-col bg-[#292929] border-black">
+      <SheetContent
+        side="right"
+        className="h-full flex flex-col bg-[#292929] border-black"
+      >
         <SheetHeader>
           <SheetTitle className="text-xl text-[#f0f0f0]">Close the day</SheetTitle>
           <SheetDescription className="text-lg text-[#b7b7b7]">
@@ -116,13 +131,13 @@ export function CloseDaySheet({ disabled, formattedDate, onSaved }: CloseDayShee
           </SheetDescription>
         </SheetHeader>
 
+        {/* Inputs */}
         <div className="flex flex-col gap-4">
           <div>
             <Label htmlFor="mainStockValue" className="text-md text-[#f0f0f0] ml-6">
               Main stock value:
             </Label>
             <Input
-              autoComplete="off"
               id="mainStockValue"
               value={mainStockValue}
               onChange={(e) => setMainStockValue(e.target.value)}
@@ -136,12 +151,11 @@ export function CloseDaySheet({ disabled, formattedDate, onSaved }: CloseDayShee
               Order stock value:
             </Label>
             <Input
-              autoComplete="off"
               id="orderStockValue"
               value={orderStockValue}
               onChange={(e) => setOrderStockValue(e.target.value)}
               className="w-[90%] mx-auto border-[#3f3e3e] text-[#f0f0f0]"
-              placeholder="e.g. 5333.43"
+              placeholder="e.g. 5678.00"
             />
           </div>
 
@@ -150,12 +164,11 @@ export function CloseDaySheet({ disabled, formattedDate, onSaved }: CloseDayShee
               Revenue main stock (with margin):
             </Label>
             <Input
-              autoComplete="off"
               id="mainRevenueWithMargin"
               value={mainRevenueWithMargin}
               onChange={(e) => setMainRevenueWithMargin(e.target.value)}
               className="w-[90%] mx-auto border-[#3f3e3e] text-[#f0f0f0]"
-              placeholder="e.g. 66332.92"
+              placeholder="e.g. 8000.00"
             />
           </div>
 
@@ -164,12 +177,11 @@ export function CloseDaySheet({ disabled, formattedDate, onSaved }: CloseDayShee
               Revenue main stock (without margin):
             </Label>
             <Input
-              autoComplete="off"
               id="mainRevenueWithoutMargin"
               value={mainRevenueWithoutMargin}
               onChange={(e) => setMainRevenueWithoutMargin(e.target.value)}
               className="w-[90%] mx-auto border-[#3f3e3e] text-[#f0f0f0]"
-              placeholder="e.g. 244.50"
+              placeholder="e.g. 7000.00"
             />
           </div>
 
@@ -178,12 +190,11 @@ export function CloseDaySheet({ disabled, formattedDate, onSaved }: CloseDayShee
               Revenue order stock (with margin):
             </Label>
             <Input
-              autoComplete="off"
               id="orderRevenueWithMargin"
               value={orderRevenueWithMargin}
               onChange={(e) => setOrderRevenueWithMargin(e.target.value)}
               className="w-[90%] mx-auto border-[#3f3e3e] text-[#f0f0f0]"
-              placeholder="e.g. 789.11"
+              placeholder="e.g. 4000.00"
             />
           </div>
 
@@ -192,30 +203,28 @@ export function CloseDaySheet({ disabled, formattedDate, onSaved }: CloseDayShee
               Revenue order stock (without margin):
             </Label>
             <Input
-              autoComplete="off"
               id="orderRevenueWithoutMargin"
               value={orderRevenueWithoutMargin}
               onChange={(e) => setOrderRevenueWithoutMargin(e.target.value)}
               className="w-[90%] mx-auto border-[#3f3e3e] text-[#f0f0f0]"
-              placeholder="e.g. 422.49"
+              placeholder="e.g. 3500.00"
             />
           </div>
         </div>
-
-        <div className="mt-auto mb-4 flex flex-col w-[90%] mx-auto gap-2">
-          <Button
-            onClick={handleSave}
-            className="transition text-[#f0f0f0] delay-50 duration-200 ease-in-out hover:-translate-y-0 hover:scale-105 hover:bg-[#414141]"
-          >
-            Save data
-          </Button>
-          <Button
-            onClick={handleReset}
-            className="transition text-[#f0f0f0] delay-50 duration-200 ease-in-out hover:-translate-y-0 hover:scale-105 hover:bg-[#414141]"
-          >
-            Reset
-          </Button>
-        </div>
+          <div className="mt-auto mb-4 flex flex-col w-[90%] mx-auto gap-2">
+            <Button
+              onClick={handleSave}
+              className="transition text-[#f0f0f0] delay-50 duration-200 ease-in-out hover:-translate-y-0 hover:scale-105 hover:bg-[#414141]"
+            >
+              Save data
+            </Button>
+            <Button
+              onClick={handleReset}
+              className="transition text-[#f0f0f0] delay-50 duration-200 ease-in-out hover:-translate-y-0 hover:scale-105 hover:bg-[#414141]"
+            >
+              Reset
+            </Button>
+          </div>
       </SheetContent>
     </Sheet>
   );
