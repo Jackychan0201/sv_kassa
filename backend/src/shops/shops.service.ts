@@ -53,6 +53,7 @@ export class ShopsService {
     if (dto.name) shop.name = dto.name;
     if (dto.role) shop.role = dto.role;
     if (dto.timer) shop.timer = dto.timer;
+    if (dto.email) shop.email = dto.email;
 
     const updatedShop = this.shopRepository.save(shop);
     const { password, ...result } = await updatedShop;

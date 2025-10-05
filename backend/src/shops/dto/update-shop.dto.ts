@@ -1,8 +1,14 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsOptional, IsString, Matches, MinLength } from 'class-validator';
+import { IsEmail, IsOptional, IsString, Matches, MinLength } from 'class-validator';
 import { ShopRole } from '../shop.entity';
 
 export class UpdateShopDto {
+  @ApiProperty({ example: 'shop11@example.com', required: false })
+  @IsOptional()
+  @IsString()
+  @IsEmail()
+  email?: string;
+
   @ApiProperty({ example: '9999', required: false })
   @IsOptional()
   @IsString()

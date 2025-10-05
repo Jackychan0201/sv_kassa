@@ -18,5 +18,6 @@ export async function PATCH(
   });
 
   const data = await response.json();
+
   return NextResponse.json(data, { status: response.status });
 }
