@@ -15,6 +15,7 @@ import { Label } from "../atoms/label";
 import { toast } from "sonner";
 import { postDailyRecord } from "@/lib/api";
 import { useUser } from "@/components/providers/user-provider";
+import { LoadingFallback } from "../molecules/loading-fallback";
 
 
 interface CloseDaySheetProps {
@@ -55,9 +56,13 @@ export function CloseDaySheet({ disabled, formattedDate, onSaved }: CloseDayShee
     }
   }
 
+  if (!user || !user.user) {
+    return <LoadingFallback message="Loading user info..." />;
+  }
+
   try {
     const record = {
-      shopId: user.user.shopId,
+      shopId: user.user.shopId as string,
       mainStockValue: Number(fields[0].value),
       orderStockValue: Number(fields[1].value),
       revenueMainWithMargin: Number(fields[2].value),

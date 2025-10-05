@@ -13,6 +13,7 @@ import { CloseDaySheet } from "@/components/organisms/close-day-sheet";
 import { EditDayDialog } from "@/components/molecules/edit-day-dialog";
 import { LoadingFallback } from "@/components/molecules/loading-fallback";
 import { SetReminderDialog } from "@/components/molecules/set-reminder-dialog";
+import { CloseDayDialog } from "@/components/molecules/close-day-dialog";
 
 export default function DashboardPage() {
   const today = new Date();
@@ -153,6 +154,12 @@ export default function DashboardPage() {
     }
   }
 
+  // --- Disable logic for CloseDaySheet ---
+  const closeDayDisabled =
+    user.role === "SHOP"
+      ? recordData[0] !== null // Shop can close once per day
+      : notClosedShopNames.length === 0; // CEO can close only if all shops are done
+
   return (
     <div>
       <div className="flex flex-col">
@@ -192,14 +199,22 @@ export default function DashboardPage() {
       </div>
 
       <div className="flex flex-row mt-10 gap-x-5">
+      {user.role === "SHOP" ? (
         <CloseDaySheet
-          disabled={recordData[0] !== null}
+          disabled={closeDayDisabled}
           formattedDate={formattedDate}
           onSaved={loadRecord}
         />
-        <EditDayDialog onSaved={loadRecord} />
-        <SetReminderDialog />
-      </div>
+      ) : (
+        <CloseDayDialog
+          shops={shops}
+          disabled={closeDayDisabled}
+          onClosed={loadRecord}
+        />
+      )}
+      <EditDayDialog onSaved={loadRecord} />
+      <SetReminderDialog />
+    </div>
     </div>
   );
 }
