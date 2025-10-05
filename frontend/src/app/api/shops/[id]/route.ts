@@ -12,12 +12,28 @@ export async function PATCH(
     method: "PATCH",
     headers: {
       "Content-Type": "application/json",
-      cookie,
+      cookie, // pass current JWT
     },
     body: JSON.stringify(body),
   });
 
   const data = await response.json();
+  const res = NextResponse.json(data, { status: response.status });
 
-  return NextResponse.json(data, { status: response.status });
+  // If backend set a new cookie, propagate it to client
+  const setCookie = response.headers.get("set-cookie");
+  if (setCookie) {
+    const cookies = setCookie.split(";").map((c) => c.trim());
+    const [cookieNameValue] = cookies;
+    const [name, value] = cookieNameValue.split("=");
+
+    res.cookies.set({
+      name,
+      value,
+      httpOnly: true,
+      path: "/",
+    });
+  }
+
+  return res;
 }

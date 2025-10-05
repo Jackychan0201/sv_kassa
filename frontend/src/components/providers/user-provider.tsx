@@ -1,46 +1,44 @@
 "use client";
 
-import { createContext, useContext, useState } from "react";
+import { createContext, useContext, useState, ReactNode } from "react";
 
 export type User = {
+  id: string;
+  shopId?: string; // optional if your JWT includes it
   name: string;
-  role: string;
   email: string;
-  shopId: string;
-  timer: string;
+  role: string;
+  timer?: string | null;
 };
 
-type UserContextValue = {
-  user: User;
-  setTimer: (time: string) => void;
+const UserContext = createContext<UserContextType | undefined>(undefined);
+
+type UserContextType = {
+  user: User | null;
+  setUser: (user: User | null) => void;
   setName: (name: string) => void;
   setEmail: (email: string) => void;
+  setTimer: (timer: string | null) => void;
 };
 
-const UserContext = createContext<UserContextValue | null>(null);
+export function UserProvider({ children, user: initialUser }: { children: ReactNode; user?: User | null }) {
+  const [user, setUser] = useState<User | null>(initialUser ?? null);
 
-export function UserProvider({
-  user: initialUser,
-  children,
-}: {
-  user: User;
-  children: React.ReactNode;
-}) {
-  const [user, setUser] = useState<User>(initialUser);
-
-  const setTimer = (time: string) => setUser((u) => ({ ...u, timer: time }));
-  const setName = (name: string) => setUser((u) => ({ ...u, name }));
-  const setEmail = (email: string) => setUser((u) => ({ ...u, email }));
+  const setName = (name: string) => user && setUser({ ...user, name });
+  const setEmail = (email: string) => user && setUser({ ...user, email });
+  const setTimer = (timer: string | null) => user && setUser({ ...user, timer });
 
   return (
-    <UserContext.Provider value={{ user, setTimer, setName, setEmail }}>
+    <UserContext.Provider value={{ user, setUser, setName, setEmail, setTimer }}>
       {children}
     </UserContext.Provider>
   );
 }
 
 export function useUser() {
-  const ctx = useContext(UserContext);
-  if (!ctx) throw new Error("useUser must be used within a UserProvider");
-  return ctx;
+  const context = useContext(UserContext);
+  if (!context) {
+    throw new Error("useUser must be used within a UserProvider");
+  }
+  return context;
 }

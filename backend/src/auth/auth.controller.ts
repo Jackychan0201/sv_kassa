@@ -45,8 +45,15 @@ export class AuthController {
 
   @Get('me')
   @UseGuards(JwtAuthGuard)
-  @ApiOperation({ summary: 'Get current shop info' })
-  async me(@Req() req: Request) {
-    return req.user;
+  getProfile(@Req() req) {
+    const user = req.user; // This comes from JWT payload
+    return {
+      id: user.id,
+      shopId: user.shopId, // ✅ Make sure this exists
+      name: user.name,
+      email: user.email,
+      role: user.role,
+    };
   }
+
 }

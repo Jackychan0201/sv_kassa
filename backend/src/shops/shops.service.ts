@@ -6,12 +6,14 @@ import * as bcrypt from 'bcrypt';
 import { CreateShopDto } from './dto/create-shop.dto';
 import { UpdateShopDto } from './dto/update-shop.dto';
 import { JwtShop } from '../auth/jwt-shop.type';
+import { JwtService } from '@nestjs/jwt';
 
 @Injectable()
 export class ShopsService {
   constructor(
     @InjectRepository(Shop)
     private readonly shopRepository: Repository<Shop>,
+    private readonly jwtService: JwtService,
   ) {}
 
   async createShop(dto: CreateShopDto): Promise<Shop> {
@@ -35,19 +37,17 @@ export class ShopsService {
     return result as Shop;
   }
 
-  async updateShop(user: JwtShop, id: string, dto: UpdateShopDto): Promise<Shop> {
+  async updateShop(user: JwtShop, id: string, dto: UpdateShopDto): Promise<{ shop: Shop; token?: string }> {
     if (user.role !== ShopRole.CEO && user.shopId !== id) {
       throw new ForbiddenException('You are not allowed to update this shop');
     }
-    
+
     if (dto.role && user.role !== ShopRole.CEO) {
       throw new ForbiddenException('Only CEO can change shop roles');
     }
 
     const shop = await this.shopRepository.findOne({ where: { id } });
-    if (!shop) {
-      throw new NotFoundException(`Shop with id ${id} not found`);
-    }
+    if (!shop) throw new NotFoundException(`Shop with id ${id} not found`);
 
     if (dto.password) shop.password = await bcrypt.hash(dto.password, 10);
     if (dto.name) shop.name = dto.name;
@@ -55,10 +55,25 @@ export class ShopsService {
     if (dto.timer) shop.timer = dto.timer;
     if (dto.email) shop.email = dto.email;
 
-    const updatedShop = this.shopRepository.save(shop);
-    const { password, ...result } = await updatedShop;
-    return result as Shop;
+    const updatedShop = await this.shopRepository.save(shop);
+    const { password, ...result } = updatedShop;
+
+    // Reissue JWT if the updated shop is the logged-in user
+    let token: string | undefined;
+    if (user.shopId === updatedShop.id) {
+      const payload = {
+        sub: updatedShop.id,
+        name: updatedShop.name,
+        email: updatedShop.email,
+        role: updatedShop.role,
+        timer: updatedShop.timer,
+      };
+      token = this.jwtService.sign(payload);
+    }
+
+    return { shop: result as Shop, token };
   }
+
 
   async deleteShop(user: JwtShop, id: string): Promise<void> {
     if (user.role !== ShopRole.CEO && user.shopId !== id) {

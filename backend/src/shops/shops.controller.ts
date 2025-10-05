@@ -9,11 +9,18 @@ import { Roles } from '../auth/roles.decorator';
 import { UpdateShopDto } from './dto/update-shop.dto';
 import type { Request } from 'express';
 import { JwtShop } from 'src/auth/jwt-shop.type';
+import { JwtService } from '@nestjs/jwt';
+import type { Response } from 'express';
+import { Res } from '@nestjs/common';
+
 
 @ApiTags('shops')
 @Controller('shops')
 export class ShopsController {
-  constructor(private readonly shopsService: ShopsService) {}
+  constructor(
+    private readonly shopsService: ShopsService,
+    private readonly jwtService: JwtService,
+  ) {}
 
   @Get()
   @UseGuards(JwtAuthGuard, RolesGuard)
@@ -57,10 +64,21 @@ export class ShopsController {
   @UseGuards(JwtAuthGuard)
   @ApiOperation({ summary: 'Update shop credentials (CEO can update any, shops only their own)' })
   @ApiResponse({ status: 200, description: 'Shop updated successfully.', type: Shop })
-  async update(@Param('id') id: string, @Body() dto: UpdateShopDto, @Req() req: Request): Promise<Shop> {
+  async update(@Param('id') id: string, @Body() dto: UpdateShopDto, @Req() req: Request, @Res({ passthrough: true }) res: any) {
     const user = req.user as JwtShop;
-    return this.shopsService.updateShop(user, id, dto);
+    const { shop, token } = await this.shopsService.updateShop(user, id, dto);
+
+    if (token) {
+      res.cookie('Authentication', token, {
+        httpOnly: true,
+        path: '/',
+        maxAge: 1000 * 60 * 60 * 24 * 7, // 7 days
+      });
+    }
+
+    return shop;
   }
+
 
   @Delete(':id')
   @UseGuards(JwtAuthGuard)
