@@ -1,18 +1,30 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { Label } from "@/components/atoms/label";
 import { Button } from "@/components/atoms/button";
 import { useUser } from "@/components/providers/user-provider";
 import { EditAccountSheet } from "@/components/organisms/edit-account-sheet";
 import { LoadingFallback } from "@/components/molecules/loading-fallback";
+import { logout } from "@/lib/api";
 
 export default function AccountPage() {
   const { user } = useUser();
+  const router = useRouter();
 
   if (!user) return <LoadingFallback message="Loading..." />;
 
   const [open, setOpen] = useState(false);
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+      router.push("/login");
+    } catch (err: any) {
+      console.error(err.message);
+    }
+  };
 
   return (
     <div className="flex flex-col">
@@ -30,6 +42,13 @@ export default function AccountPage() {
           className="transition text-[#f0f0f0] delay-50 duration-200 ease-in-out hover:-translate-y-0 hover:scale-105 hover:bg-[#414141]"
         >
           Change Account Data
+        </Button>
+
+        <Button
+          onClick={handleLogout}
+          className="transition text-[#f0f0f0] delay-50 duration-200 ease-in-out hover:-translate-y-0 hover:scale-105 hover:bg-[#ff4d4d]"
+        >
+          Logout
         </Button>
       </div>
 

@@ -24,6 +24,8 @@ import { useUser } from "../providers/user-provider";
 
 export function SVSidebar() {
   const user = useUser();
+  if (!user || !user.user) return null; 
+
   const router = useRouter();
   const pathname = usePathname();
 
