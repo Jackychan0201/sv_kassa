@@ -5,11 +5,12 @@ import { Label } from "@/components/atoms/label";
 import { Button } from "@/components/atoms/button";
 import { useUser } from "@/components/providers/user-provider";
 import { EditAccountSheet } from "@/components/organisms/edit-account-sheet";
+import { LoadingFallback } from "@/components/molecules/loading-fallback";
 
 export default function AccountPage() {
   const { user } = useUser();
 
-  if (!user) return <div>Loading...</div>; // handle the "null" state
+  if (!user) return <LoadingFallback message="Loading..." />;
 
   const [open, setOpen] = useState(false);
 
