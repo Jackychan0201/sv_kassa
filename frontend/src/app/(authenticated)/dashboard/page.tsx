@@ -3,10 +3,10 @@
 import { Label } from "@/components/atoms/label";
 import { useUser } from "@/components/providers/user-provider";
 import { useEffect, useState } from "react";
-import { 
-  getRecordByDate, 
-  getAllShops, 
-  getShopById 
+import {
+  getRecordByDate,
+  getAllShops,
+  getShopById,
 } from "@/lib/api";
 import { DailyRecord, Shop } from "@/lib/types";
 import { CloseDaySheet } from "@/components/organisms/close-day-sheet";
@@ -94,21 +94,43 @@ export default function DashboardPage() {
     return <LoadingFallback message="Loading records..." />;
   }
 
+  // --- Compute record data ---
   let recordData: (number | null)[] = [];
-  if (record.length === 0) {
-    recordData = [null, null, null, null, null, null];
-  } else {
-    recordData = [
-      record[0].mainStockValue.toFixed(2) as unknown as number,
-      record[0].orderStockValue.toFixed(2) as unknown as number,
-      record[0].revenueMainWithMargin.toFixed(2) as unknown as number,
-      record[0].revenueMainWithoutMargin.toFixed(2) as unknown as number,
-      record[0].revenueOrderWithMargin.toFixed(2) as unknown as number,
-      record[0].revenueOrderWithoutMargin.toFixed(2) as unknown as number,
-    ];
+
+  if (user.role === "SHOP") {
+    // For shop users: show their own data
+    if (record.length === 0) {
+      recordData = [null, null, null, null, null, null];
+    } else {
+      recordData = [
+        record[0].mainStockValue,
+        record[0].orderStockValue,
+        record[0].revenueMainWithoutMargin,
+        record[0].revenueMainWithMargin,
+        record[0].revenueOrderWithoutMargin,
+        record[0].revenueOrderWithMargin,
+      ];
+    }
+  } else if (user.role === "CEO") {
+    // For CEO: sum across all shops’ records
+    if (!allRecords || allRecords.length === 0) {
+      recordData = [null, null, null, null, null, null];
+    } else {
+      const sum = (key: keyof DailyRecord) =>
+        allRecords.reduce((acc, r) => acc + (Number(r[key]) || 0), 0);
+
+      recordData = [
+        sum("mainStockValue"),
+        sum("orderStockValue"),
+        sum("revenueMainWithoutMargin"),
+        sum("revenueMainWithMargin"),
+        sum("revenueOrderWithoutMargin"),
+        sum("revenueOrderWithMargin"),
+      ];
+    }
   }
 
-  // RBAC label logic
+  // --- RBAC label logic ---
   let dayStatusLabel = "";
   let dayStatusColor = "";
 
@@ -140,22 +162,28 @@ export default function DashboardPage() {
 
       <div className="flex flex-col mt-10 gap-y-7">
         <Label className="text-xl">
-          Main stock value({formattedDate}): {recordData[0]}
+          Main stock value ({formattedDate}):{" "}
+          {recordData[0] !== null ? recordData[0].toFixed(2) : "-"}
         </Label>
         <Label className="text-xl">
-          Order stock value({formattedDate}): {recordData[1]}
+          Order stock value ({formattedDate}):{" "}
+          {recordData[1] !== null ? recordData[1].toFixed(2) : "-"}
         </Label>
         <Label className="text-xl">
-          Revenue main stock(no margin)({formattedDate}): {recordData[2]}
+          Revenue main stock (no margin) ({formattedDate}):{" "}
+          {recordData[2] !== null ? recordData[2].toFixed(2) : "-"}
         </Label>
         <Label className="text-xl">
-          Revenue main stock(with margin)({formattedDate}): {recordData[3]}
+          Revenue main stock (with margin) ({formattedDate}):{" "}
+          {recordData[3] !== null ? recordData[3].toFixed(2) : "-"}
         </Label>
         <Label className="text-xl">
-          Revenue order stock(no margin)({formattedDate}): {recordData[4]}
+          Revenue order stock (no margin) ({formattedDate}):{" "}
+          {recordData[4] !== null ? recordData[4].toFixed(2) : "-"}
         </Label>
         <Label className="text-xl">
-          Revenue order stock(with margin)({formattedDate}): {recordData[5]}
+          Revenue order stock (with margin) ({formattedDate}):{" "}
+          {recordData[5] !== null ? recordData[5].toFixed(2) : "-"}
         </Label>
 
         <Label className="text-xl" style={{ color: dayStatusColor }}>
