@@ -207,7 +207,7 @@ export default function DashboardPage() {
         />
       ) : (
         <CloseDayDialog
-          shops={shops}
+          shops={shops.filter((s) => notClosedShopNames.includes(s.name))}
           disabled={closeDayDisabled}
           onClosed={loadRecord}
           formattedDate={formattedDate}

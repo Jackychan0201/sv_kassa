@@ -22,6 +22,7 @@ interface CloseDaySheetProps {
   formattedDate: string;
   onSaved?: () => void;
   shopId?: string;
+  shopName?: string;
   open?: boolean;         
   onClose?: () => void; 
 }
@@ -31,6 +32,7 @@ export function CloseDaySheet({
   formattedDate,
   onSaved,
   shopId,
+  shopName,
   open = false,
   onClose,
 }: CloseDaySheetProps) {
@@ -126,8 +128,9 @@ export function CloseDaySheet({
       >
         <SheetHeader>
           <SheetTitle className="text-xl text-[#f0f0f0]">Close the day</SheetTitle>
-          <SheetDescription className="text-lg text-[#b7b7b7]">
-            Close the day for {formattedDate}
+          <SheetDescription className="flex flex-col text-lg text-[#b7b7b7]">
+            <Label className="text-lg">Close the day for {formattedDate}</Label>
+            {shopName && <Label className="text-base">{shopName}</Label>}
           </SheetDescription>
         </SheetHeader>
 

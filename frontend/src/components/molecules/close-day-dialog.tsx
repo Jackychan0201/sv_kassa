@@ -79,7 +79,7 @@ export function CloseDayDialog({
                   <Button
                     variant="outline"
                     role="combobox"
-                    className="w-[300px] justify-between bg-[#3a3a3a] text-[#f0f0f0] hover:bg-[#414141]"
+                    className="w-[300px] justify-between bg-[#3a3a3a] text-[#f0f0f0] hover:bg-[#414141] hover:text-[#f0f0f0]"
                   >
                     {selectedShop ? selectedShop.name : "Select shop"}
                     <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
@@ -144,6 +144,7 @@ export function CloseDayDialog({
             onClose={() => setOpenSheet(false)}
             formattedDate={formattedDate}
             shopId={selectedShop.id}
+            shopName={selectedShop.name}
             onSaved={() => {
             setOpenSheet(false);
             toast.success(`${selectedShop.name} day closed successfully`);
