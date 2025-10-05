@@ -10,7 +10,6 @@ import { UpdateShopDto } from './dto/update-shop.dto';
 import type { Request } from 'express';
 import { JwtShop } from 'src/auth/jwt-shop.type';
 import { JwtService } from '@nestjs/jwt';
-import type { Response } from 'express';
 import { Res } from '@nestjs/common';
 
 
@@ -72,7 +71,7 @@ export class ShopsController {
       res.cookie('Authentication', token, {
         httpOnly: true,
         path: '/',
-        maxAge: 1000 * 60 * 60 * 24 * 7, // 7 days
+        maxAge: 86400 * 1000,
       });
     }
 

@@ -27,7 +27,7 @@ export class AuthController {
       maxAge: expiresInMs,
     });
 
-    return { message: 'Login successful' };
+    return { message: 'Login successful', expiresInMs: expiresInMs};
   }
 
   @Post('logout')

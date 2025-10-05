@@ -8,19 +8,19 @@ import { JwtStrategy } from './jwt.strategy';
 
 @Module({
   imports: [
-    forwardRef(() => ShopsModule), // ✅ prevents circular dependency
+    forwardRef(() => ShopsModule),
     ConfigModule,
     JwtModule.registerAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => ({
         secret: configService.get<string>('JWT_SECRET'),
-        signOptions: { expiresIn: configService.get<string>('JWT_EXPIRES_IN') || '7d' },
+        signOptions: { expiresIn: Number(configService.get<string>('JWT_EXPIRES_IN')) },
       }),
     }),
   ],
   providers: [AuthService, JwtStrategy],
   controllers: [AuthController],
-  exports: [AuthService, JwtModule], // ✅ export JwtModule
+  exports: [AuthService, JwtModule],
 })
 export class AuthModule {}
