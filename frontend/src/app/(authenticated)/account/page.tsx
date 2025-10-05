@@ -28,7 +28,7 @@ export default function AccountPage() {
 
   return (
     <div className="flex flex-col">
-      <Label className="text-4xl font-bold mt-8">Account</Label>
+      <Label className="text-4xl font-bold">Account</Label>
       <Label className="text-lg mb-8">Manage your profile and preferences here.</Label>
 
       <div className="flex flex-col gap-y-4">

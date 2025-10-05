@@ -254,7 +254,7 @@ export default function StatisticsPage() {
   };
 
   return (
-    <div className="flex flex-col p-6">
+    <div className="flex flex-col">
         <Label className="text-3xl font-bold mb-1">Statistics</Label>
         <Label className="text-lg text-[#f0f0f0] mb-6">Get advanced statistics about the shop</Label>
 
