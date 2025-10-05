@@ -1,5 +1,24 @@
 import { NextRequest, NextResponse } from "next/server";
 
+export async function GET(
+  req: NextRequest,
+  context: { params: Promise<{ id: string }> }
+) {
+  const { id } = await context.params;
+  const cookie = req.headers.get("cookie") ?? "";
+
+  const response = await fetch(`http://localhost:3000/shops/${id}`, {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+      cookie, // pass JWT to backend
+    },
+  });
+
+  const data = await response.json();
+  return NextResponse.json(data, { status: response.status });
+}
+
 export async function PATCH(
   req: NextRequest,
   context: { params: Promise<{ id: string }> }

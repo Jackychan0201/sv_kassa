@@ -139,32 +139,36 @@ export class DailyRecordsService {
       shopId = user.shopId;
     }
 
+    let records: DailyRecord[];
+
     if (user.role === ShopRole.CEO && !shopId) {
-      return this.dailyRecordRepo.find({
+      // CEO fetching all records
+      records = await this.dailyRecordRepo.find({
         relations: [],
         order: { createdAt: 'ASC' },
       });
+    } else {
+      const shop = await this.shopRepo.findOne({ where: { id: shopId } });
+      if (!shop) {
+        throw new NotFoundException(`Shop with id ${shopId} not found`);
+      }
+
+      records = await this.dailyRecordRepo.find({
+        where: shopId ? { shopId } : {},
+        order: { recordDate: 'ASC' },
+      });
     }
 
-    const shop = await this.shopRepo.findOne({ where: { id: shopId } });
-    if (!shop) {
-      throw new NotFoundException(`Shop with id ${shopId} not found`);
-    }
-
-    const result = await this.dailyRecordRepo.find({
-      where: shopId ? { shopId } : {},
-      order: { recordDate: 'ASC' },
-    });
-
-    for (const record of result) {
+    // Format recordDate for all records
+    for (const record of records) {
       const [year, month, day] = record.recordDate.split('-');
       record.recordDate = `${day}.${month}.${year}`;
     }
 
-    const convertedRecords = await Promise.all(result.map(r => this.convertRecordToDecimal(r)));
-
+    const convertedRecords = await Promise.all(records.map(r => this.convertRecordToDecimal(r)));
     return convertedRecords;
   }
+
 
   async updateById(user: JwtShop, recordId: string, dto: UpdateDailyRecordDto): Promise<DailyRecord> {
     const record = await this.dailyRecordRepo.findOne({ where: { id: recordId } });

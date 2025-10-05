@@ -231,7 +231,6 @@ export default function StatisticsPage() {
   const mainRevenueWithMargin = dailyRecords.map(r => r.revenueMainWithMargin);
   const mainRevenueWithoutMargin = dailyRecords.map(r => r.revenueMainWithoutMargin);
   const mainMargin = dailyRecords.map(r => r.revenueMainWithMargin - r.revenueMainWithoutMargin);
-  console.log(mainMargin);
   const mainStockValues = dailyRecords.map(r => r.mainStockValue);
 
   const orderRevenueWithMargin = dailyRecords.map(r => r.revenueOrderWithMargin);

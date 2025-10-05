@@ -11,3 +11,9 @@ export type DailyRecord = {
   createdAt: string;
   updatedAt: string;
 };
+
+export type Shop = {
+  id: string;
+  name: string;
+  role: string;
+}

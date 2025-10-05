@@ -1,4 +1,4 @@
-import { DailyRecord } from "@/lib/types";
+import { DailyRecord, Shop } from "@/lib/types";
 
 export const login = async (username: string, password: string) => {
   const res = await fetch("/api/auth/login", {
@@ -29,7 +29,7 @@ export const logout = async () => {
   return res.json();
 };
 
-export const getDailyRecords = async () => {
+export const getDailyRecords = async (): Promise<DailyRecord[]> => {
   const res = await fetch("/api/daily-records", {
     method: "GET",
     headers: { "Content-Type": "application/json" },
@@ -129,6 +129,36 @@ export const saveReminderTime = async (shopId: string, time: string) => {
   if (!res.ok) {
     const errorData = await res.json();
     throw new Error(errorData.message || "Failed to save reminder");
+  }
+
+  return res.json();
+};
+
+export const getShopById = async (id: string): Promise<Shop> => {
+  const res = await fetch(`/api/shops/${id}`, {
+    method: "GET",
+    headers: { "Content-Type": "application/json" },
+    credentials: "include",
+  });
+
+  if (!res.ok) {
+    throw new Error(`Failed to fetch shop with id ${id}`);
+  }
+
+  return res.json();
+};
+
+
+export const getAllShops = async (): Promise<Shop[]> => {
+  const res = await fetch('/api/shops', {
+    method: 'GET',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
+  });
+
+  if (!res.ok) {
+    const errorData = await res.json();
+    throw new Error(errorData.message || 'Failed to fetch shops');
   }
 
   return res.json();

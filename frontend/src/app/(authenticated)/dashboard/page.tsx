@@ -2,10 +2,13 @@
 
 import { Label } from "@/components/atoms/label";
 import { useUser } from "@/components/providers/user-provider";
-
 import { useEffect, useState } from "react";
-import { getRecordByDate } from "@/lib/api";
-import { DailyRecord } from "@/lib/types";
+import { 
+  getRecordByDate, 
+  getAllShops, 
+  getShopById 
+} from "@/lib/api";
+import { DailyRecord, Shop } from "@/lib/types";
 import { CloseDaySheet } from "@/components/organisms/close-day-sheet";
 import { EditDayDialog } from "@/components/molecules/edit-day-dialog";
 import { LoadingFallback } from "@/components/molecules/loading-fallback";
@@ -17,25 +20,81 @@ export default function DashboardPage() {
     today.getMonth() + 1 < 10 ? "0" : ""
   }${today.getMonth() + 1}.${today.getFullYear()}`;
 
+  const { user } = useUser();
   const [record, setRecord] = useState<DailyRecord[] | null>(null);
+  const [allRecords, setAllRecords] = useState<DailyRecord[] | null>(null);
+  const [shops, setShops] = useState<Shop[]>([]);
+  const [notClosedShopNames, setNotClosedShopNames] = useState<string[]>([]);
 
   const loadRecord = async () => {
     try {
       const data = await getRecordByDate(formattedDate);
       setRecord(data);
+
+      if (user?.role === "CEO") {
+        const todaysRecords = await getRecordByDate(formattedDate);
+        setAllRecords(todaysRecords);
+      }
     } catch (err) {
       console.error(err);
     }
   };
 
+  const loadShops = async () => {
+    if (user?.role === "CEO") {
+      try {
+        const allShops = await getAllShops();
+        setShops(allShops.filter((s) => s.role === "SHOP"));
+      } catch (err) {
+        console.error("Failed to fetch shops:", err);
+      }
+    }
+  };
+
+  // Compute shops that haven't closed yet (CEO only)
+  const resolveNotClosedShops = async () => {
+    if (user?.role !== "CEO" || !allRecords || shops.length === 0) return;
+
+    try {
+      const closedShopIds = allRecords.map((r) => r.shopId);
+      const notClosedShops = shops.filter((s) => !closedShopIds.includes(s.id));
+
+      const names = await Promise.all(
+        notClosedShops.map(async (shop) => {
+          try {
+            const shopData = await getShopById(shop.id);
+            return shopData.name;
+          } catch (err) {
+            console.error(`Failed to fetch shop name for ${shop.id}:`, err);
+            return shop.id; // fallback to ID if name can't be fetched
+          }
+        })
+      );
+
+      setNotClosedShopNames(names);
+    } catch (err) {
+      console.error("Error resolving not closed shops:", err);
+    }
+  };
+
   useEffect(() => {
+    loadShops();
     loadRecord();
-  }, []);
+  }, [user]);
+
+  useEffect(() => {
+    resolveNotClosedShops();
+  }, [allRecords, shops]);
+
+  if (!user) {
+    return <LoadingFallback message="Loading user info..." />;
+  }
+
+  if (!record) {
+    return <LoadingFallback message="Loading records..." />;
+  }
 
   let recordData: (number | null)[] = [];
-  if (!record) {
-    return <LoadingFallback message="Loading..."/>;
-  }
   if (record.length === 0) {
     recordData = [null, null, null, null, null, null];
   } else {
@@ -49,33 +108,70 @@ export default function DashboardPage() {
     ];
   }
 
+  // RBAC label logic
+  let dayStatusLabel = "";
+  let dayStatusColor = "";
+
+  if (user.role === "SHOP") {
+    dayStatusLabel =
+      recordData[0] !== null
+        ? "Day is closed successfully!"
+        : "Day is not closed!";
+    dayStatusColor = recordData[0] !== null ? "#009908" : "#960000";
+  } else if (user.role === "CEO") {
+    if (!allRecords) {
+      dayStatusLabel = "Loading daily records...";
+      dayStatusColor = "#666666";
+    } else if (notClosedShopNames.length === 0) {
+      dayStatusLabel = "All shops closed their days";
+      dayStatusColor = "#009908";
+    } else {
+      dayStatusLabel = `Not all shops closed their days: ${notClosedShopNames.join(", ")}`;
+      dayStatusColor = "#960000";
+    }
+  }
+
   return (
     <div>
       <div className="flex flex-col">
         <Label className="text-3xl font-bold">Dashboard</Label>
         <Label className="text-lg">Today is: {formattedDate}</Label>
       </div>
+
       <div className="flex flex-col mt-10 gap-y-7">
-        <Label className="text-xl">Main stock value({formattedDate}): {recordData[0]}</Label>
-        <Label className="text-xl">Order stock value({formattedDate}): {recordData[1]}</Label>
-        <Label className="text-xl">Revenue main stock(no margin)({formattedDate}): {recordData[2]}</Label>
-        <Label className="text-xl">Revenue main stock(with margin)({formattedDate}): {recordData[3]}</Label>
-        <Label className="text-xl">Revenue order stock(no margin)({formattedDate}): {recordData[4]}</Label>
-        <Label className="text-xl">Revenue order stock(with margin)({formattedDate}): {recordData[5]}</Label>
-        <Label className={"text-xl " + (recordData[0] !== null ? "text-[#009908]" : "text-[#960000]")}>
-          {recordData[0] !== null ? "Day is closed sucessfully!" : "Day is not closed!"}
+        <Label className="text-xl">
+          Main stock value({formattedDate}): {recordData[0]}
+        </Label>
+        <Label className="text-xl">
+          Order stock value({formattedDate}): {recordData[1]}
+        </Label>
+        <Label className="text-xl">
+          Revenue main stock(no margin)({formattedDate}): {recordData[2]}
+        </Label>
+        <Label className="text-xl">
+          Revenue main stock(with margin)({formattedDate}): {recordData[3]}
+        </Label>
+        <Label className="text-xl">
+          Revenue order stock(no margin)({formattedDate}): {recordData[4]}
+        </Label>
+        <Label className="text-xl">
+          Revenue order stock(with margin)({formattedDate}): {recordData[5]}
+        </Label>
+
+        <Label className="text-xl" style={{ color: dayStatusColor }}>
+          {dayStatusLabel}
         </Label>
       </div>
+
       <div className="flex flex-row mt-10 gap-x-5">
         <CloseDaySheet
           disabled={recordData[0] !== null}
           formattedDate={formattedDate}
           onSaved={loadRecord}
         />
-        <EditDayDialog onSaved={loadRecord}/>
+        <EditDayDialog onSaved={loadRecord} />
         <SetReminderDialog />
       </div>
     </div>
   );
 }
-
