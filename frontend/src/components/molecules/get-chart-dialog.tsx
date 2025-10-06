@@ -126,7 +126,7 @@ export function GetChartDialog() {
                 <Button
                     variant="outline"
                     role="combobox"
-                    className="w-[300px] justify-between bg-[#3a3a3a] text-[#f0f0f0] hover:bg-[#414141] hover:text-[#f0f0f0]"
+                    className="w-48 justify-between bg-[#171717] border-0 text-[#f0f0f0] hover:bg-[#414141] hover:text-[#f0f0f0]"
                 >
                     {selectedOption ? selectedOption.label : "Select metric"}
                     <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />

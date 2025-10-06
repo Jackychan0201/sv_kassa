@@ -79,14 +79,14 @@ export function CloseDayDialog({
                   <Button
                     variant="outline"
                     role="combobox"
-                    className="w-[300px] justify-between bg-[#3a3a3a] text-[#f0f0f0] hover:bg-[#414141] hover:text-[#f0f0f0]"
+                      className="w-48 justify-between bg-[#171717] border-0 text-[#f0f0f0] hover:bg-[#414141] hover:text-[#f0f0f0]"
                   >
                     {selectedShop ? selectedShop.name : "Select shop"}
                     <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                   </Button>
                 </PopoverTrigger>
 
-                <PopoverContent className="w-[300px] p-0 bg-[#545454] text-[#f0f0f0]">
+                <PopoverContent className="w-48 p-0 bg-[#545454] text-[#f0f0f0]">
                   <Command className="bg-[#545454]">
                     <CommandGroup className="bg-[#545454]">
                       {shops.map((shop) => (
