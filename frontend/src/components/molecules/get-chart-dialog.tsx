@@ -29,13 +29,7 @@ import {
   CartesianGrid,
   ResponsiveContainer,
 } from "recharts";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/atoms/popover";
-import { Command, CommandGroup, CommandItem } from "@/components/atoms/command";
-import { Check, ChevronsUpDown } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/atoms/select";
 
 // Define chart themes (what user can pick)
 const chartOptions = [
@@ -54,7 +48,6 @@ export function GetChartDialog() {
   const [loading, setLoading] = useState(false);
   const [records, setRecords] = useState<DailyRecord[] | null>(null);
   const [selectedMetric, setSelectedMetric] = useState<string | null>(null);
-  const [comboOpen, setComboOpen] = useState(false);
 
   const handleOpenChange = (isOpen: boolean) => {
     setOpen(isOpen);
@@ -114,96 +107,61 @@ export function GetChartDialog() {
 
           {/* Date pickers */}
           <div className="flex gap-4 mt-2">
-              <DatePicker title="From date" value={fromDate} onChange={setFromDate} />
-              <DatePicker title="To date" value={toDate} onChange={setToDate} />
+            <DatePicker title="From date" value={fromDate} onChange={setFromDate} />
+            <DatePicker title="To date" value={toDate} onChange={setToDate} />
           </div>
 
-          {/* Combobox */}
-            <div className="mt-4">
+          {/* Metric select */}
+          <div className="mt-4">
             <p className="text-sm mb-1">Select metric</p>
-            <Popover open={comboOpen} onOpenChange={setComboOpen}>
-                <PopoverTrigger asChild>
-                <Button
-                    variant="outline"
-                    role="combobox"
-                    className="w-48 justify-between bg-[#171717] border-0 text-[#f0f0f0] hover:bg-[#414141] hover:text-[#f0f0f0]"
-                >
-                    {selectedOption ? selectedOption.label : "Select metric"}
-                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-[300px] p-0 bg-[#545454] text-[#f0f0f0]">
-                    <Command className="bg-[#545454]">
-                        <CommandGroup className="bg-[#545454]">
-                        {chartOptions.map((opt) => (
-                            <CommandItem
-                            key={opt.key}
-                            onSelect={() => {
-                                setSelectedMetric(opt.key);
-                                setComboOpen(false);
-                            }}
-                            className="
-                                bg-[#545454] text-[#f0f0f0] cursor-pointer
-                                data-[highlighted]:bg-[#292929] 
-                                data-[highlighted]:text-[#f0f0f0]
-                            "
-                            >
-                            <Check
-                                className={`mr-2 h-4 w-4 ${
-                                selectedMetric === opt.key ? "opacity-100" : "opacity-0"
-                                }`}
-                            />
-                            {opt.label}
-                            </CommandItem>
-                        ))}
-                        </CommandGroup>
-                    </Command>
-                </PopoverContent>
-
-
-            </Popover>
-            </div>
-
+            <Select value={selectedMetric ?? undefined} onValueChange={(val) => setSelectedMetric(val)}>
+              <SelectTrigger className="w-48 justify-between bg-[#171717] border-0 text-[#f0f0f0] hover:bg-[#414141] hover:text-[#f0f0f0]">
+                <SelectValue placeholder="Select metric" />
+              </SelectTrigger>
+              <SelectContent className="bg-[#545454] text-[#f0f0f0]">
+                {chartOptions.map((opt) => (
+                  <SelectItem key={opt.key} value={opt.key}>
+                    {opt.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
 
           {/* Chart */}
-            <div className="mt-6">
+          <div className="mt-6">
             {loading && <p>Loading...</p>}
             {!loading && records && records.length > 0 && selectedMetric && (
-                <ChartContainer
+              <ChartContainer
                 className="h-[40vh] w-full"
                 config={{
-                    [selectedMetric]: {
+                  [selectedMetric]: {
                     label: selectedOption?.label || "Value",
                     color: "#8884d8",
-                    },
+                  },
                 }}
-                >
+              >
                 <ResponsiveContainer width="100%" height="100%">
-                    <LineChart data={records}>
+                  <LineChart data={records}>
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis dataKey="recordDate" />
                     <YAxis />
-                    <ChartTooltip 
-                    content={
-                        <ChartTooltipContent hideIndicator={true}/>
-                    } 
-                    />
+                    <ChartTooltip content={<ChartTooltipContent hideIndicator={true} />} />
                     <Line
-                        type="monotone"
-                        dataKey={selectedMetric}
-                        stroke="#8884d8"
-                        strokeWidth={2}
-                        dot={{ r: 3 }}
+                      type="monotone"
+                      dataKey={selectedMetric}
+                      stroke="#8884d8"
+                      strokeWidth={2}
+                      dot={{ r: 3 }}
                     />
-                    </LineChart>
+                  </LineChart>
                 </ResponsiveContainer>
-                </ChartContainer>
+              </ChartContainer>
             )}
             {!loading && records && records.length === 0 && (
-                <p className="text-[#b7b7b7] mt-4">No records found in this range.</p>
+              <p className="text-[#b7b7b7] mt-4">No records found in this range.</p>
             )}
-            </div>
-
+          </div>
 
           <DialogFooter className="mt-4">
             <DialogClose asChild>

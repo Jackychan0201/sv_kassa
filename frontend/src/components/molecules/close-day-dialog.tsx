@@ -6,22 +6,15 @@ import {
   Dialog,
   DialogClose,
   DialogContent,
-  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
 } from "@/components/atoms/dialog";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/atoms/popover";
-import { Command, CommandGroup, CommandItem } from "@/components/atoms/command";
-import { Check, ChevronsUpDown } from "lucide-react";
 import { toast } from "sonner";
 import { Shop } from "@/lib/types";
 import { CloseDaySheet } from "@/components/organisms/close-day-sheet";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/atoms/select";
 
 interface CloseDayDialogProps {
   shops: Shop[];
@@ -39,7 +32,6 @@ export function CloseDayDialog({
   const [open, setOpen] = useState(false);
   const [openSheet, setOpenSheet] = useState(false);
   const [selectedShop, setSelectedShop] = useState<Shop | null>(null);
-  const [comboOpen, setComboOpen] = useState(false);
 
   const handleGo = () => {
     if (!selectedShop) {
@@ -66,56 +58,26 @@ export function CloseDayDialog({
           <DialogContent className="sm:max-w-[425px] border-black bg-[#292929] text-[#f0f0f0]">
             <DialogHeader>
               <DialogTitle>Close shop day</DialogTitle>
-              <DialogDescription className="text-[#f0f0f0]">
-                Select a shop to close its day
-              </DialogDescription>
             </DialogHeader>
 
-            {/* Combobox to select shop */}
+            {/* Select shop using Select */}
             <div className="mt-4">
-              <p className="text-sm mb-1">Select shop</p>
-              <Popover open={comboOpen} onOpenChange={setComboOpen}>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    role="combobox"
-                      className="w-48 justify-between bg-[#171717] border-0 text-[#f0f0f0] hover:bg-[#414141] hover:text-[#f0f0f0]"
-                  >
-                    {selectedShop ? selectedShop.name : "Select shop"}
-                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                  </Button>
-                </PopoverTrigger>
-
-                <PopoverContent className="w-48 p-0 bg-[#545454] text-[#f0f0f0]">
-                  <Command className="bg-[#545454]">
-                    <CommandGroup className="bg-[#545454]">
-                      {shops.map((shop) => (
-                        <CommandItem
-                          key={shop.id}
-                          onSelect={() => {
-                            setSelectedShop(shop);
-                            setComboOpen(false);
-                          }}
-                          className="
-                            bg-[#545454] text-[#f0f0f0] cursor-pointer
-                            data-[highlighted]:bg-[#292929]
-                            data-[highlighted]:text-[#f0f0f0]
-                          "
-                        >
-                          <Check
-                            className={`mr-2 h-4 w-4 ${
-                              selectedShop?.id === shop.id
-                                ? "opacity-100"
-                                : "opacity-0"
-                            }`}
-                          />
-                          {shop.name}
-                        </CommandItem>
-                      ))}
-                    </CommandGroup>
-                  </Command>
-                </PopoverContent>
-              </Popover>
+              <p className="text-sm mb-1 text-[#f0f0f0]">Select shop</p>
+              <Select
+                value={selectedShop?.id ?? undefined}
+                onValueChange={(val) => setSelectedShop(shops.find((s) => s.id === val) || null)}
+              >
+                <SelectTrigger className="w-48 justify-between bg-[#171717] border-0 text-[#f0f0f0] hover:bg-[#414141] hover:text-[#f0f0f0]">
+                  <SelectValue placeholder="Select shop" />
+                </SelectTrigger>
+                <SelectContent className="bg-[#545454] text-[#f0f0f0]">
+                  {shops.map((shop) => (
+                    <SelectItem key={shop.id} value={shop.id}>
+                      {shop.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
 
             <DialogFooter className="mt-6">
@@ -140,18 +102,18 @@ export function CloseDayDialog({
       {/* Instantly opens CloseDaySheet when Continue clicked */}
       {openSheet && selectedShop && (
         <CloseDaySheet
-            open={openSheet}
-            onClose={() => setOpenSheet(false)}
-            formattedDate={formattedDate}
-            shopId={selectedShop.id}
-            shopName={selectedShop.name}
-            onSaved={() => {
+          open={openSheet}
+          onClose={() => setOpenSheet(false)}
+          formattedDate={formattedDate}
+          shopId={selectedShop.id}
+          shopName={selectedShop.name}
+          onSaved={() => {
             setOpenSheet(false);
             toast.success(`${selectedShop.name} day closed successfully`);
             onClosed?.();
-            }}
+          }}
         />
-        )}
+      )}
     </>
   );
 }
