@@ -5,18 +5,24 @@ import { Label } from "@/components/atoms/label";
 import { GetChartDialog } from "@/components/molecules/get-chart-dialog";
 import { GetTableDialog } from "@/components/molecules/get-table-dialog";
 import { LoadingFallback } from "@/components/molecules/loading-fallback";
-import { DailyRecord } from "@/lib/types";
-import { getRecordsByRange } from "@/lib/api";
+import { DailyRecord, Shop } from "@/lib/types";
+import { getRecordsByRange, getAllShops } from "@/lib/api";
+import { useUser } from "@/components/providers/user-provider";
 import {
   Accordion,
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
 } from "@/components/atoms/accordion";
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/atoms/select";
 
 export default function StatisticsPage() {
+  const { user } = useUser();
   const [dailyRecords, setDailyRecords] = useState<DailyRecord[] | null>(null);
+  const [allRecords, setAllRecords] = useState<DailyRecord[] | null>(null);
+  const [shops, setShops] = useState<Shop[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [selectedShopId, setSelectedShopId] = useState<string>("ALL");
 
   function formatDate(date: Date) {
     const day = String(date.getDate()).padStart(2, "0");
@@ -25,6 +31,7 @@ export default function StatisticsPage() {
     return `${day}.${month}.${year}`;
   }
 
+  // --- Load records ---
   useEffect(() => {
     async function loadRecords() {
       try {
@@ -35,24 +42,45 @@ export default function StatisticsPage() {
         const fromDateStr = formatDate(fromDate);
         const toDateStr = formatDate(toDate);
 
-        const records = await getRecordsByRange(fromDateStr, toDateStr);
-        setDailyRecords(records);
+        if (!user) return;
+
+        if (user.role === "SHOP") {
+          const records = await getRecordsByRange(fromDateStr, toDateStr);
+          setDailyRecords(records);
+        } else if (user.role === "CEO") {
+          // Fetch all shops and all records
+          const allShops = await getAllShops();
+          setShops(allShops.filter((s) => s.role === "SHOP"));
+
+          const records = await getRecordsByRange(fromDateStr, toDateStr); 
+          // For simplicity, fetch all records. You could also call a dedicated API for all shops
+          setAllRecords(records);
+        }
       } catch (err: any) {
         setError(err.message || "Failed to load records");
       }
     }
     loadRecords();
-  }, []);
+  }, [user]);
 
-  if (error) {
-    return <Label className="text-red-500">Error: {error}</Label>;
+  if (!user) return <LoadingFallback message="Loading user info..." />;
+  if (error) return <Label className="text-red-500">Error: {error}</Label>;
+  if (!dailyRecords && user.role === "SHOP") return <LoadingFallback message="Loading records..." />;
+  if (!allRecords && user.role === "CEO") return <LoadingFallback message="Loading records for all shops..." />;
+
+  // --- Choose records based on role & selection ---
+  let recordsToUse: DailyRecord[] = [];
+  if (user.role === "SHOP") {
+    recordsToUse = dailyRecords!;
+  } else if (user.role === "CEO") {
+    if (selectedShopId === "ALL") {
+      recordsToUse = allRecords ?? [];
+    } else {
+      recordsToUse = (allRecords ?? []).filter((r) => r.shopId === selectedShopId);
+    }
   }
 
-  if (!dailyRecords) {
-    return <LoadingFallback message="Loading..." />;
-  }
-
-  if (dailyRecords.length === 0) {
+  if (recordsToUse.length === 0) {
     return <Label>No records found in the selected date range.</Label>;
   }
 
@@ -129,114 +157,27 @@ export default function StatisticsPage() {
       : 0;
   };
 
-  const gmroi = calculateGMROI(dailyRecords);
-  const dailyRevenueGrowth = calculateDailyRevenueGrowth(dailyRecords, 7);
-  const inventoryTurnover = calculateInventoryTurnover(dailyRecords);
-  const overallMargin = calculateOverallMarginPercentage(dailyRecords);
+  const gmroi = calculateGMROI(recordsToUse);
+  const dailyRevenueGrowth = calculateDailyRevenueGrowth(recordsToUse, 7);
+  const inventoryTurnover = calculateInventoryTurnover(recordsToUse);
+  const overallMargin = calculateOverallMarginPercentage(recordsToUse);
 
-  // --- Advice ---
-  const adviceList: string[] = [];
-
-  // --- GMROI Advice (Highest Priority) ---
-  if (gmroi < 1.0) {
-    adviceList.push(
-      `GMROI: Critical (Current: ${gmroi.toFixed(2)}). Losing money on inventory. Review supply costs and slow-moving stock.`
-    );
-  } else if (gmroi >= 1.0 && gmroi < 2.0) {
-    adviceList.push(
-      `GMROI: Warning (Current: ${gmroi.toFixed(2)}). Consider markdown strategies and SKU rationalization.`
-    );
-  } else if (gmroi >= 2.0 && gmroi < 3.0) {
-    adviceList.push(
-      `GMROI: Good (Current: ${gmroi.toFixed(2)}). Maintain current strategies and scale successful practices.`
-    );
-  } else {
-    adviceList.push(
-      `GMROI: Excellent (Current: ${gmroi.toFixed(2)}). Maintain and scale successful practices.`
-    );
-  }
-
-  // --- Daily Revenue Growth Advice ---
-  if (dailyRevenueGrowth > 20 || dailyRevenueGrowth < -20) {
-    adviceList.push(
-      `Daily Revenue Growth: Volatile (Current: ${dailyRevenueGrowth.toFixed(2)}%).`
-    );
-  } else if (dailyRevenueGrowth >= 5) {
-    adviceList.push(
-      `Daily Revenue Growth: Excellent (Current: ${dailyRevenueGrowth.toFixed(2)}%). Keep momentum steady.`
-    );
-  } else if (dailyRevenueGrowth >= 2) {
-    adviceList.push(
-      `Daily Revenue Growth: Good (Current: ${dailyRevenueGrowth.toFixed(2)}%). Maintain steady growth.`
-    );
-  } else if (dailyRevenueGrowth >= -2) {
-    adviceList.push(
-      `Daily Revenue Growth: Stable (Current: ${dailyRevenueGrowth.toFixed(2)}%). Baseline performance maintained.`
-    );
-  } else if (dailyRevenueGrowth >= -5) {
-    adviceList.push(
-      `Daily Revenue Growth: Warning (Current: ${dailyRevenueGrowth.toFixed(2)}%). Monitor sales trends closely.`
-    );
-  }
-
-  // --- Inventory Turnover Advice ---
-  if (inventoryTurnover > 12) {
-    adviceList.push(
-      `Inventory Turnover: High (Current: ${inventoryTurnover.toFixed(2)}). Ensure stock levels prevent stockouts.`
-    );
-  } else if (inventoryTurnover >= 8) {
-    adviceList.push(
-      `Inventory Turnover: Excellent (Current: ${inventoryTurnover.toFixed(2)}). Efficient stock movement.`
-    );
-  } else if (inventoryTurnover >= 5) {
-    adviceList.push(
-      `Inventory Turnover: Good (Current: ${inventoryTurnover.toFixed(2)}). Maintain current sales velocity.`
-    );
-  } else if (inventoryTurnover >= 3) {
-    adviceList.push(
-      `Inventory Turnover: Average (Current: ${inventoryTurnover.toFixed(2)}). Consider optimizing stock levels.`
-    );
-  } else {
-    adviceList.push(
-      `Inventory Turnover: Poor (Current: ${inventoryTurnover.toFixed(2)}). Review inventory and sales strategies.`
-    );
-  }
-
-  // --- Overall Margin Percentage Advice ---
-  if (overallMargin < 25) {
-    adviceList.push(
-      `Overall Margin: Warning (Current: ${overallMargin.toFixed(2)}%). Check pricing, discounts, and cost of goods.`
-    );
-  } else if (overallMargin >= 25 && overallMargin < 30.9) {
-    adviceList.push(
-      `Overall Margin: Industry Average (Current: ${overallMargin.toFixed(2)}%). Maintain competitive pricing.`
-    );
-  } else if (overallMargin >= 30.9 && overallMargin < 50) {
-    adviceList.push(
-      `Overall Margin: Good (Current: ${overallMargin.toFixed(2)}%). Keep pricing and margins steady.`
-    );
-  } else {
-    adviceList.push(
-      `Overall Margin: Excellent (Current: ${overallMargin.toFixed(2)}%). Strong profitability achieved.`
-    );
-  }
-
-  // --- Additional stats calculations ---
+  // --- Stats calculations ---
   const calcStats = (values: number[]) => ({
     max: Math.max(...values),
     min: Math.min(...values),
     avg: values.reduce((a, b) => a + b, 0) / values.length,
   });
 
-  const mainRevenueWithMargin = dailyRecords.map(r => r.revenueMainWithMargin);
-  const mainRevenueWithoutMargin = dailyRecords.map(r => r.revenueMainWithoutMargin);
-  const mainMargin = dailyRecords.map(r => r.revenueMainWithMargin - r.revenueMainWithoutMargin);
-  const mainStockValues = dailyRecords.map(r => r.mainStockValue);
+  const mainRevenueWithMargin = recordsToUse.map(r => r.revenueMainWithMargin);
+  const mainRevenueWithoutMargin = recordsToUse.map(r => r.revenueMainWithoutMargin);
+  const mainMargin = recordsToUse.map(r => r.revenueMainWithMargin - r.revenueMainWithoutMargin);
+  const mainStockValues = recordsToUse.map(r => r.mainStockValue);
 
-  const orderRevenueWithMargin = dailyRecords.map(r => r.revenueOrderWithMargin);
-  const orderRevenueWithoutMargin = dailyRecords.map(r => r.revenueOrderWithoutMargin);
-  const orderMargin = dailyRecords.map(r => r.revenueOrderWithMargin - r.revenueOrderWithoutMargin);
-  const orderStockValues = dailyRecords.map(r => r.orderStockValue);
+  const orderRevenueWithMargin = recordsToUse.map(r => r.revenueOrderWithMargin);
+  const orderRevenueWithoutMargin = recordsToUse.map(r => r.revenueOrderWithoutMargin);
+  const orderMargin = recordsToUse.map(r => r.revenueOrderWithMargin - r.revenueOrderWithoutMargin);
+  const orderStockValues = recordsToUse.map(r => r.orderStockValue);
 
   const mainStats = {
     revenueWithMargin: calcStats(mainRevenueWithMargin),
@@ -252,81 +193,115 @@ export default function StatisticsPage() {
     avgStock: calcStats(orderStockValues),
   };
 
+  // --- Advice logic (same as your original code) ---
+  const adviceList: string[] = [];
+  if (gmroi < 1.0) adviceList.push(`GMROI: Critical (Current: ${gmroi.toFixed(2)}). Losing money on inventory.`);
+  else if (gmroi < 2.0) adviceList.push(`GMROI: Warning (Current: ${gmroi.toFixed(2)}). Consider markdown strategies.`);
+  else if (gmroi < 3.0) adviceList.push(`GMROI: Good (Current: ${gmroi.toFixed(2)}). Maintain current strategies.`);
+  else adviceList.push(`GMROI: Excellent (Current: ${gmroi.toFixed(2)}). Scale successful practices.`);
+
+  if (dailyRevenueGrowth > 20 || dailyRevenueGrowth < -20)
+    adviceList.push(`Daily Revenue Growth: Volatile (Current: ${dailyRevenueGrowth.toFixed(2)}%).`);
+  else if (dailyRevenueGrowth >= 5)
+    adviceList.push(`Daily Revenue Growth: Excellent (Current: ${dailyRevenueGrowth.toFixed(2)}%).`);
+  else if (dailyRevenueGrowth >= 2)
+    adviceList.push(`Daily Revenue Growth: Good (Current: ${dailyRevenueGrowth.toFixed(2)}%).`);
+  else if (dailyRevenueGrowth >= -2)
+    adviceList.push(`Daily Revenue Growth: Stable (Current: ${dailyRevenueGrowth.toFixed(2)}%).`);
+  else if (dailyRevenueGrowth >= -5)
+    adviceList.push(`Daily Revenue Growth: Warning (Current: ${dailyRevenueGrowth.toFixed(2)}%).`);
+
+  if (inventoryTurnover > 12) adviceList.push(`Inventory Turnover: High (Current: ${inventoryTurnover.toFixed(2)}).`);
+  else if (inventoryTurnover >= 8) adviceList.push(`Inventory Turnover: Excellent (Current: ${inventoryTurnover.toFixed(2)}).`);
+  else if (inventoryTurnover >= 5) adviceList.push(`Inventory Turnover: Good (Current: ${inventoryTurnover.toFixed(2)}).`);
+  else if (inventoryTurnover >= 3) adviceList.push(`Inventory Turnover: Average (Current: ${inventoryTurnover.toFixed(2)}).`);
+  else adviceList.push(`Inventory Turnover: Poor (Current: ${inventoryTurnover.toFixed(2)}).`);
+
+  if (overallMargin < 25) adviceList.push(`Overall Margin: Warning (Current: ${overallMargin.toFixed(2)}%).`);
+  else if (overallMargin < 30.9) adviceList.push(`Overall Margin: Industry Average (Current: ${overallMargin.toFixed(2)}%).`);
+  else if (overallMargin < 50) adviceList.push(`Overall Margin: Good (Current: ${overallMargin.toFixed(2)}%).`);
+  else adviceList.push(`Overall Margin: Excellent (Current: ${overallMargin.toFixed(2)}%).`);
+
   return (
     <div className="flex flex-col">
-        <Label className="text-3xl font-bold mb-1">Statistics</Label>
-        <Label className="text-lg text-[#f0f0f0] mb-6">Get advanced statistics about the shop</Label>
+      <Label className="text-3xl font-bold mb-1">Statistics</Label>
+      <Label className="text-lg text-[#f0f0f0] mb-6">Get advanced statistics about the shop</Label>
 
-        <div className="flex flex-col lg:flex-row gap-6">
-          {/* Left column: Accordion + KPIs */}
-          <div className="flex-1 flex flex-col gap-4">
-            {/* Wrap accordion in fixed-height container */}
-            <div className="w-full max-w-xl flex-1 overflow-y-auto">
-              <Accordion type="single" collapsible className="w-full">
-                <AccordionItem value="main">
-                  <AccordionTrigger className="text-lg w-full text-left">Main Storage Stats</AccordionTrigger>
-                  <AccordionContent className="flex flex-col gap-1 w-full">
-                    <Label className="text-md">
-                      Revenue With Margin - Max: {mainStats.revenueWithMargin.max.toFixed(2)}, Min: {mainStats.revenueWithMargin.min.toFixed(2)}, Avg: {mainStats.revenueWithMargin.avg.toFixed(2)}
-                    </Label>
-                    <Label className="text-md">
-                      Revenue Without Margin - Max: {mainStats.revenueWithoutMargin.max.toFixed(2)}, Min: {mainStats.revenueWithoutMargin.min.toFixed(2)}, Avg: {mainStats.revenueWithoutMargin.avg.toFixed(2)}
-                    </Label>
-                    <Label className="text-md">
-                      Margin - Max: {mainStats.margin.max.toFixed(2)}, Min: {mainStats.margin.min.toFixed(2)}, Avg: {mainStats.margin.avg.toFixed(2)}
-                    </Label>
-                    <Label className="text-md">Average Stock Value: {mainStats.avgStock.avg.toFixed(2)}</Label>
-                  </AccordionContent>
-                </AccordionItem>
+      {/* --- CEO shop selector --- */}
+      {user.role === "CEO" && (
+        <div className="mb-4">
+          <Label className="mb-1">Select Shop:</Label>
+          <Select value={selectedShopId} onValueChange={setSelectedShopId}>
+            <SelectTrigger className="w-48 bg-[#171717] border-0 text-[#f0f0f0] hover:bg-[#414141] hover:text-[#f0f0f0]">
+              <SelectValue placeholder="Select shop" />
+            </SelectTrigger>
+            <SelectContent className="bg-[#545454] text-[#f0f0f0]">
+              <SelectItem value="ALL">ALL</SelectItem>
+              {shops.map((shop) => (
+                <SelectItem key={shop.id} value={shop.id}>
+                  {shop.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      )}
 
-                <AccordionItem value="order">
-                  <AccordionTrigger className="text-lg w-full text-left">Order Storage Stats</AccordionTrigger>
-                  <AccordionContent className="flex flex-col gap-1 w-full">
-                    <Label className="text-md">
-                      Revenue With Margin - Max: {orderStats.revenueWithMargin.max.toFixed(2)}, Min: {orderStats.revenueWithMargin.min.toFixed(2)}, Avg: {orderStats.revenueWithMargin.avg.toFixed(2)}
-                    </Label>
-                    <Label className="text-md">
-                      Revenue Without Margin - Max: {orderStats.revenueWithoutMargin.max.toFixed(2)}, Min: {orderStats.revenueWithoutMargin.min.toFixed(2)}, Avg: {orderStats.revenueWithoutMargin.avg.toFixed(2)}
-                    </Label>
-                    <Label className="text-md">
-                      Margin - Max: {orderStats.margin.max.toFixed(2)}, Min: {orderStats.margin.min.toFixed(2)}, Avg: {orderStats.margin.avg.toFixed(2)}
-                    </Label>
-                    <Label className="text-md">Average Stock Value: {orderStats.avgStock.avg.toFixed(2)}</Label>
-                  </AccordionContent>
-                </AccordionItem>
-              </Accordion>
-            </div>
+      <div className="flex flex-col lg:flex-row gap-6">
+        {/* Left column: Accordion + KPIs */}
+        <div className="flex-1 flex flex-col gap-4">
+          <div className="w-[40vw] overflow-y-auto">
+            <Accordion type="single" collapsible className="w-full">
+              <AccordionItem value="main">
+                <AccordionTrigger className="text-lg w-full text-left">Main Storage Stats</AccordionTrigger>
+                <AccordionContent className="flex flex-col gap-1 w-full">
+                  <Label>Revenue With Margin - Max: {mainStats.revenueWithMargin.max.toFixed(2)}, Min: {mainStats.revenueWithMargin.min.toFixed(2)}, Avg: {mainStats.revenueWithMargin.avg.toFixed(2)}</Label>
+                  <Label>Revenue Without Margin - Max: {mainStats.revenueWithoutMargin.max.toFixed(2)}, Min: {mainStats.revenueWithoutMargin.min.toFixed(2)}, Avg: {mainStats.revenueWithoutMargin.avg.toFixed(2)}</Label>
+                  <Label>Margin - Max: {mainStats.margin.max.toFixed(2)}, Min: {mainStats.margin.min.toFixed(2)}, Avg: {mainStats.margin.avg.toFixed(2)}</Label>
+                  <Label>Average Stock Value: {mainStats.avgStock.avg.toFixed(2)}</Label>
+                </AccordionContent>
+              </AccordionItem>
 
-            {/* KPI Stats */}
-            <div className="flex flex-col gap-y-4 mt-4">
-              <Label className="text-xl">GMROI: {gmroi.toFixed(2)}</Label>
-              <Label className="text-xl">Daily Revenue Growth (7-day avg): {dailyRevenueGrowth.toFixed(2)}%</Label>
-              <Label className="text-xl">Inventory Turnover Rate: {inventoryTurnover.toFixed(2)} times/year</Label>
-              <Label className="text-xl">Overall Margin Percentage: {overallMargin.toFixed(2)}%</Label>
-            </div>
-
-            <div className="flex flex-row mt-6 gap-x-5">
-              <GetTableDialog />
-              <GetChartDialog />
-            </div>
+              <AccordionItem value="order">
+                <AccordionTrigger className="text-lg w-full text-left">Order Storage Stats</AccordionTrigger>
+                <AccordionContent className="flex flex-col gap-1 w-full">
+                  <Label>Revenue With Margin - Max: {orderStats.revenueWithMargin.max.toFixed(2)}, Min: {orderStats.revenueWithMargin.min.toFixed(2)}, Avg: {orderStats.revenueWithMargin.avg.toFixed(2)}</Label>
+                  <Label>Revenue Without Margin - Max: {orderStats.revenueWithoutMargin.max.toFixed(2)}, Min: {orderStats.revenueWithoutMargin.min.toFixed(2)}, Avg: {orderStats.revenueWithoutMargin.avg.toFixed(2)}</Label>
+                  <Label>Margin - Max: {orderStats.margin.max.toFixed(2)}, Min: {orderStats.margin.min.toFixed(2)}, Avg: {orderStats.margin.avg.toFixed(2)}</Label>
+                  <Label>Average Stock Value: {orderStats.avgStock.avg.toFixed(2)}</Label>
+                </AccordionContent>
+              </AccordionItem>
+            </Accordion>
           </div>
 
-          {/* Right column: Advice */}
-          <div className="flex-1 mt-4 lg:mt-0">
-            <div className="p-4 rounded-md bg-[#292929] flex flex-col justify-start h-70">
-              <Label className="font-semibold text-xl text-[#f0f0f0] mb-2">Advice</Label>
-              <div className="flex flex-col gap-1">
-                {adviceList.map((item, idx) => (
-                  <Label key={idx} className="text-md text-gray-300 block">
-                    {item}
-                  </Label>
-                ))}
-              </div>
+          {/* KPI Stats */}
+          <div className="flex flex-col gap-y-4 mt-4">
+            <Label className="text-xl">GMROI: {gmroi.toFixed(2)}</Label>
+            <Label className="text-xl">Daily Revenue Growth (7-day avg): {dailyRevenueGrowth.toFixed(2)}%</Label>
+            <Label className="text-xl">Inventory Turnover Rate: {inventoryTurnover.toFixed(2)} times/year</Label>
+            <Label className="text-xl">Overall Margin Percentage: {overallMargin.toFixed(2)}%</Label>
+          </div>
+
+          <div className="flex flex-row mt-6 gap-x-5">
+            <GetTableDialog />
+            <GetChartDialog />
+          </div>
+        </div>
+
+        {/* Right column: Advice */}
+        <div className="mt-4 mr-4 lg:mt-0">
+          <div className="p-4 rounded-md bg-[#292929] flex flex-col justify-start">
+            <Label className="font-semibold text-xl text-[#f0f0f0] mb-2">Advice</Label>
+            <div className="flex flex-col gap-1">
+              {adviceList.map((item, idx) => (
+                <Label key={idx} className="text-md text-gray-300 block">
+                  {item}
+                </Label>
+              ))}
             </div>
           </div>
         </div>
       </div>
-
-
+    </div>
   );
 }

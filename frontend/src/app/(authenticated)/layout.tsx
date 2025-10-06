@@ -32,7 +32,7 @@ export default async function AuthenticatedLayout({
 
   return (
     <UserProvider user={user}>
-      <div className="bg-[#1e1e1e] relative h-screen">
+      <div className="bg-[#1e1e1e] relative h-screen w-screen">
         <SidebarProvider defaultOpen={true}>
           <SVSidebar />
 
@@ -50,7 +50,7 @@ export default async function AuthenticatedLayout({
             />
           </div>
 
-          <div className="relative z-10 ml-45 mt-3 text-[#f0f0f0]">
+          <div className="relative z-10 ml-45 mt-3 text-[#f0f0f0] w-full">
             {children}
             <TimerNotificationClient />
           </div>
