@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/atoms/button";
 import {
   Dialog,
@@ -12,10 +12,10 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/atoms/dialog";
-import { DatePicker } from "./date-picker"; 
+import { DatePicker } from "./date-picker";
 import { toast } from "sonner";
-import { getRecordsByRange } from "@/lib/api";
-import { DailyRecord } from "@/lib/types";
+import { getRecordsByRange, getAllShops } from "@/lib/api";
+import { DailyRecord, Shop } from "@/lib/types";
 import {
   Table,
   TableBody,
@@ -24,14 +24,40 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/atoms/table";
-import { ScrollArea } from "@/components/atoms/scroll-area"; 
+import { ScrollArea } from "@/components/atoms/scroll-area";
+import { useUser } from "@/components/providers/user-provider";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/atoms/select";
 
 export function GetTableDialog() {
+  const { user } = useUser();
   const [fromDate, setFromDate] = useState<Date | null>(null);
   const [toDate, setToDate] = useState<Date | null>(null);
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [records, setRecords] = useState<DailyRecord[] | null>(null);
+  const [shops, setShops] = useState<Shop[]>([]);
+  const [selectedShop, setSelectedShop] = useState<string>("ALL");
+
+  // Load shops (only for CEO)
+  useEffect(() => {
+    const fetchShops = async () => {
+      if (user?.role === "CEO") {
+        try {
+          const allShops = await getAllShops();
+          setShops(allShops.filter((s) => s.role === "SHOP"));
+        } catch (err) {
+          console.error("Failed to fetch shops:", err);
+        }
+      }
+    };
+    fetchShops();
+  }, [user]);
 
   const handleOpenChange = (isOpen: boolean) => {
     setOpen(isOpen);
@@ -39,6 +65,7 @@ export function GetTableDialog() {
       setRecords(null);
       setFromDate(null);
       setToDate(null);
+      setSelectedShop("ALL");
     }
   };
 
@@ -57,7 +84,13 @@ export function GetTableDialog() {
 
     try {
       const data = await getRecordsByRange(formatDate(fromDate), formatDate(toDate));
-      setRecords(data);
+
+      let filtered = data;
+      if (user?.role === "CEO" && selectedShop !== "ALL") {
+        filtered = data.filter((r) => r.shopId === selectedShop);
+      }
+
+      setRecords(filtered);
     } catch (err: any) {
       toast.error(err.message || "Failed to fetch records");
     } finally {
@@ -82,11 +115,36 @@ export function GetTableDialog() {
             </DialogDescription>
           </DialogHeader>
 
-          <div className="flex gap-4 mt-2">
+          {/* CEO-only shop selector */}
+          {user?.role === "CEO" && (
+            <div className="mt-4">
+              <p className="text-sm mb-1 text-[#f0f0f0]">Select shop</p>
+              <Select
+                value={selectedShop}
+                onValueChange={(val) => setSelectedShop(val)}
+              >
+                <SelectTrigger className="w-48 justify-between bg-[#171717] border-0 text-[#f0f0f0] hover:bg-[#414141] hover:text-[#f0f0f0]">
+                  <SelectValue placeholder="Select shop" />
+                </SelectTrigger>
+                <SelectContent className="bg-[#545454] text-[#f0f0f0]">
+                  <SelectItem value="ALL">All</SelectItem>
+                  {shops.map((shop) => (
+                    <SelectItem key={shop.id} value={shop.id}>
+                      {shop.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+
+          {/* Date pickers */}
+          <div className="flex gap-4 mt-4">
             <DatePicker title="From date" value={fromDate} onChange={setFromDate} />
             <DatePicker title="To date" value={toDate} onChange={setToDate} />
           </div>
 
+          {/* Table section */}
           <div className="mt-4">
             {loading && <p>Loading...</p>}
             {!loading && records && records.length > 0 && (
@@ -95,18 +153,34 @@ export function GetTableDialog() {
                   <TableHeader>
                     <TableRow>
                       <TableHead className="text-[#f0f0f0]">Record date</TableHead>
+                      {user?.role === "CEO" && (
+                        <TableHead className="text-[#f0f0f0]">Shop</TableHead>
+                      )}
                       <TableHead className="text-[#f0f0f0]">Main stock value</TableHead>
                       <TableHead className="text-[#f0f0f0]">Order stock value</TableHead>
-                      <TableHead className="text-[#f0f0f0]">Revenue main stock (with margin)</TableHead>
-                      <TableHead className="text-[#f0f0f0]">Revenue main stock (without margin)</TableHead>
-                      <TableHead className="text-[#f0f0f0]">Revenue order stock (with margin)</TableHead>
-                      <TableHead className="text-[#f0f0f0]">Revenue order stock (without margin)</TableHead>
+                      <TableHead className="text-[#f0f0f0]">
+                        Revenue main stock (with margin)
+                      </TableHead>
+                      <TableHead className="text-[#f0f0f0]">
+                        Revenue main stock (without margin)
+                      </TableHead>
+                      <TableHead className="text-[#f0f0f0]">
+                        Revenue order stock (with margin)
+                      </TableHead>
+                      <TableHead className="text-[#f0f0f0]">
+                        Revenue order stock (without margin)
+                      </TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {records.map((r) => (
                       <TableRow key={r.id}>
                         <TableCell>{r.recordDate}</TableCell>
+                        {user?.role === "CEO" && (
+                          <TableCell>
+                            {shops.find((s) => s.id === r.shopId)?.name || r.shopId}
+                          </TableCell>
+                        )}
                         <TableCell>{r.mainStockValue.toFixed(2)}</TableCell>
                         <TableCell>{r.orderStockValue.toFixed(2)}</TableCell>
                         <TableCell>{r.revenueMainWithMargin.toFixed(2)}</TableCell>
