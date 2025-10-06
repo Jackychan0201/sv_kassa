@@ -3,17 +3,14 @@
 import { Label } from "@/components/atoms/label";
 import { useUser } from "@/components/providers/user-provider";
 import { useEffect, useState } from "react";
-import {
-  getRecordByDate,
-  getAllShops,
-  getShopById,
-} from "@/lib/api";
+import { getRecordByDate, getAllShops, getShopById } from "@/lib/api";
 import { DailyRecord, Shop } from "@/lib/types";
 import { CloseDaySheet } from "@/components/organisms/close-day-sheet";
 import { EditDayDialog } from "@/components/molecules/edit-day-dialog";
 import { LoadingFallback } from "@/components/molecules/loading-fallback";
 import { SetReminderDialog } from "@/components/molecules/set-reminder-dialog";
 import { CloseDayDialog } from "@/components/molecules/close-day-dialog";
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/atoms/select";
 
 export default function DashboardPage() {
   const today = new Date();
@@ -26,7 +23,9 @@ export default function DashboardPage() {
   const [allRecords, setAllRecords] = useState<DailyRecord[] | null>(null);
   const [shops, setShops] = useState<Shop[]>([]);
   const [notClosedShopNames, setNotClosedShopNames] = useState<string[]>([]);
+  const [selectedShopId, setSelectedShopId] = useState<string>("ALL"); // ALL selected by default
 
+  // Load today's records
   const loadRecord = async () => {
     try {
       const data = await getRecordByDate(formattedDate);
@@ -41,6 +40,7 @@ export default function DashboardPage() {
     }
   };
 
+  // Load shops for CEO
   const loadShops = async () => {
     if (user?.role === "CEO") {
       try {
@@ -67,7 +67,7 @@ export default function DashboardPage() {
             return shopData.name;
           } catch (err) {
             console.error(`Failed to fetch shop name for ${shop.id}:`, err);
-            return shop.id; // fallback to ID if name can't be fetched
+            return shop.id;
           }
         })
       );
@@ -95,40 +95,43 @@ export default function DashboardPage() {
     return <LoadingFallback message="Loading records..." />;
   }
 
+  // --- Filtered records according to selected shop ---
+  let filteredRecords: DailyRecord[] = [];
+  if (user.role === "SHOP") {
+    filteredRecords = record;
+  } else if (user.role === "CEO") {
+    if (selectedShopId === "ALL") {
+      filteredRecords = allRecords ?? [];
+    } else {
+      filteredRecords = (allRecords ?? []).filter((r) => r.shopId === selectedShopId);
+    }
+  }
+
   // --- Compute record data ---
   let recordData: (number | null)[] = [];
-
-  if (user.role === "SHOP") {
-    // For shop users: show their own data
-    if (record.length === 0) {
-      recordData = [null, null, null, null, null, null];
-    } else {
-      recordData = [
-        record[0].mainStockValue,
-        record[0].orderStockValue,
-        record[0].revenueMainWithoutMargin,
-        record[0].revenueMainWithMargin,
-        record[0].revenueOrderWithoutMargin,
-        record[0].revenueOrderWithMargin,
-      ];
-    }
+  if (filteredRecords.length === 0) {
+    recordData = [null, null, null, null, null, null];
+  } else if (user.role === "SHOP") {
+    const r = filteredRecords[0];
+    recordData = [
+      r.mainStockValue,
+      r.orderStockValue,
+      r.revenueMainWithoutMargin,
+      r.revenueMainWithMargin,
+      r.revenueOrderWithoutMargin,
+      r.revenueOrderWithMargin,
+    ];
   } else if (user.role === "CEO") {
-    // For CEO: sum across all shops’ records
-    if (!allRecords || allRecords.length === 0) {
-      recordData = [null, null, null, null, null, null];
-    } else {
-      const sum = (key: keyof DailyRecord) =>
-        allRecords.reduce((acc, r) => acc + (Number(r[key]) || 0), 0);
-
-      recordData = [
-        sum("mainStockValue"),
-        sum("orderStockValue"),
-        sum("revenueMainWithoutMargin"),
-        sum("revenueMainWithMargin"),
-        sum("revenueOrderWithoutMargin"),
-        sum("revenueOrderWithMargin"),
-      ];
-    }
+    const sum = (key: keyof DailyRecord) =>
+      filteredRecords.reduce((acc, r) => acc + (Number(r[key]) || 0), 0);
+    recordData = [
+      sum("mainStockValue"),
+      sum("orderStockValue"),
+      sum("revenueMainWithoutMargin"),
+      sum("revenueMainWithMargin"),
+      sum("revenueOrderWithoutMargin"),
+      sum("revenueOrderWithMargin"),
+    ];
   }
 
   // --- RBAC label logic ---
@@ -157,8 +160,8 @@ export default function DashboardPage() {
   // --- Disable logic for CloseDaySheet ---
   const closeDayDisabled =
     user.role === "SHOP"
-      ? recordData[0] !== null // Shop can close once per day
-      : notClosedShopNames.length === 0; // CEO can close only if all shops are done
+      ? recordData[0] !== null
+      : notClosedShopNames.length === 0;
 
   return (
     <div>
@@ -167,6 +170,27 @@ export default function DashboardPage() {
         <Label className="text-lg">Today is: {formattedDate}</Label>
       </div>
 
+      {/* --- Shop selector for CEO --- */}
+      {user.role === "CEO" && (
+        <div className="mt-6">
+          <Label className="mb-1 text-lg">Select Shop</Label>
+          <Select value={selectedShopId} onValueChange={setSelectedShopId}>
+            <SelectTrigger className="w-48 bg-[#171717] border-0 text-[#f0f0f0] hover:bg-[#414141] hover:text-[#f0f0f0]">
+              <SelectValue placeholder="Select shop" />
+            </SelectTrigger>
+            <SelectContent className="bg-[#545454] text-[#f0f0f0]">
+              <SelectItem value="ALL">ALL</SelectItem>
+              {shops.map((shop) => (
+                <SelectItem key={shop.id} value={shop.id}>
+                  {shop.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      )}
+
+      {/* --- Daily records --- */}
       <div className="flex flex-col mt-10 gap-y-7">
         <Label className="text-xl">
           Main stock value ({formattedDate}):{" "}
@@ -198,24 +222,25 @@ export default function DashboardPage() {
         </Label>
       </div>
 
+      {/* --- Actions --- */}
       <div className="flex flex-row mt-10 gap-x-5">
-      {user.role === "SHOP" ? (
-        <CloseDaySheet
-          disabled={closeDayDisabled}
-          formattedDate={formattedDate}
-          onSaved={loadRecord}
-        />
-      ) : (
-        <CloseDayDialog
-          shops={shops.filter((s) => notClosedShopNames.includes(s.name))}
-          disabled={closeDayDisabled}
-          onClosed={loadRecord}
-          formattedDate={formattedDate}
-        />
-      )}
-      <EditDayDialog onSaved={loadRecord} />
-      <SetReminderDialog />
-    </div>
+        {user.role === "SHOP" ? (
+          <CloseDaySheet
+            disabled={closeDayDisabled}
+            formattedDate={formattedDate}
+            onSaved={loadRecord}
+          />
+        ) : (
+          <CloseDayDialog
+            shops={shops.filter((s) => notClosedShopNames.includes(s.name))}
+            disabled={closeDayDisabled}
+            onClosed={loadRecord}
+            formattedDate={formattedDate}
+          />
+        )}
+        <EditDayDialog onSaved={loadRecord} />
+        <SetReminderDialog />
+      </div>
     </div>
   );
 }
