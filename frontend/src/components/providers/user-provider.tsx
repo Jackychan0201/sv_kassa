@@ -3,8 +3,7 @@
 import { createContext, useContext, useState, ReactNode } from "react";
 
 export type User = {
-  id: string;
-  shopId?: string; // optional if your JWT includes it
+  shopId: string;
   name: string;
   email: string;
   role: string;
