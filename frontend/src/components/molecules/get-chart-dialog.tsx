@@ -30,7 +30,6 @@ import {
   YAxis,
   CartesianGrid,
   ResponsiveContainer,
-  Legend,
 } from "recharts";
 import {
   Select,
@@ -81,7 +80,7 @@ export function GetChartDialog() {
           const data = await getAllShops();
           const filtered = data.filter((s) => s.role === "SHOP");
           setShops(filtered);
-          // ✅ Default: all checked
+          // Default: all selected
           setSelectedShops(filtered.map((s) => s.id));
           setSelectAll(true);
         } catch (err) {
@@ -154,19 +153,28 @@ export function GetChartDialog() {
 
   const selectedOption = chartOptions.find((opt) => opt.key === selectedMetric);
 
-  // ✅ Build unified dataset per date
-  const mergedData =
-    records && selectedMetric
-      ? Object.values(
-          records.reduce((acc, rec) => {
-            if (!acc[rec.recordDate])
-              acc[rec.recordDate] = { recordDate: rec.recordDate };
-            acc[rec.recordDate][rec.shopId] =
-              rec[selectedMetric as keyof DailyRecord] ?? 0;
-            return acc;
-          }, {} as Record<string, Record<string, any>>)
-        )
-      : [];
+  // ✅ Build dataset properly based on role
+  let mergedData: any[] = [];
+
+  if (records && selectedMetric) {
+    if (user?.role === "CEO") {
+      // Merge per shop per day
+      mergedData = Object.values(
+        records.reduce((acc, rec) => {
+          if (!acc[rec.recordDate]) acc[rec.recordDate] = { recordDate: rec.recordDate };
+          acc[rec.recordDate][rec.shopId] =
+            rec[selectedMetric as keyof DailyRecord] ?? 0;
+          return acc;
+        }, {} as Record<string, Record<string, any>>)
+      );
+    } else {
+      // Simple array for SHOP
+      mergedData = records.map((rec) => ({
+        recordDate: rec.recordDate,
+        [selectedMetric]: rec[selectedMetric as keyof DailyRecord] ?? 0,
+      }));
+    }
+  }
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
@@ -223,14 +231,14 @@ export function GetChartDialog() {
                   <label key={shop.id} className="flex items-center gap-2">
                     <Checkbox
                       checked={selectedShops.includes(shop.id)}
-                      onCheckedChange={(checked) =>
-                        toggleShop(shop.id, !!checked)
-                      }
+                      onCheckedChange={(checked) => toggleShop(shop.id, !!checked)}
                     />
                     <span className="flex items-center gap-2">
                       <span
                         className="w-3 h-3 rounded-full"
-                        style={{ backgroundColor: lineColors[idx % lineColors.length] }}
+                        style={{
+                          backgroundColor: lineColors[idx % lineColors.length],
+                        }}
                       ></span>
                       {shop.name}
                     </span>
@@ -253,51 +261,48 @@ export function GetChartDialog() {
                     },
                   }}
                 >
-                  <div>
-                    <div className="h-[35vh]">
-                      <ResponsiveContainer width="100%" height="100%">
-                        <LineChart data={mergedData} margin={{ bottom: 20, right: 10, top: 5 }}>
-                          <CartesianGrid strokeDasharray="3 3" />
-                          <XAxis
-                            dataKey="recordDate"
-                            interval={0}
-                            tick={{ fontSize: 12 }}
-                            angle={-30}
-                            textAnchor="end"
-                          />
-                          <YAxis />
-                          <ChartTooltip content={<ChartTooltipContent hideIndicator={true} />} />
+                  <div className="h-[35vh]">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <LineChart data={mergedData} margin={{ bottom: 20, right: 10, top: 5 }}>
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis
+                          dataKey="recordDate"
+                          interval={0}
+                          tick={{ fontSize: 12 }}
+                          angle={-30}
+                          textAnchor="end"
+                        />
+                        <YAxis />
+                        <ChartTooltip content={<ChartTooltipContent hideIndicator={true} />} />
 
-                          {user?.role === "CEO" &&
-                            shops.map(
-                              (shop, idx) =>
-                                selectedShops.includes(shop.id) && (
-                                  <Line
-                                    key={shop.id}
-                                    type="monotone"
-                                    dataKey={shop.id}
-                                    name={shop.name}
-                                    stroke={lineColors[idx % lineColors.length]}
-                                    strokeWidth={2}
-                                    dot={{ r: 3 }}
-                                  />
-                                )
-                            )}
-
-                          {user?.role !== "CEO" && records && (
-                            <Line
-                              type="monotone"
-                              dataKey={selectedMetric}
-                              stroke="#8884d8"
-                              strokeWidth={2}
-                              dot={{ r: 3 }}
-                            />
+                        {user?.role === "CEO" &&
+                          shops.map(
+                            (shop, idx) =>
+                              selectedShops.includes(shop.id) && (
+                                <Line
+                                  key={shop.id}
+                                  type="monotone"
+                                  dataKey={shop.id}
+                                  name={shop.name}
+                                  stroke={lineColors[idx % lineColors.length]}
+                                  strokeWidth={2}
+                                  dot={{ r: 3 }}
+                                />
+                              )
                           )}
-                        </LineChart>
-                      </ResponsiveContainer>
-                    </div>
 
-                    {/* Custom Legend below the chart */}
+                        {user?.role === "SHOP" && (
+                          <Line
+                            type="monotone"
+                            dataKey={selectedMetric}
+                            stroke="#8884d8"
+                            strokeWidth={2}
+                            dot={{ r: 3 }}
+                          />
+                        )}
+                      </LineChart>
+                    </ResponsiveContainer>
+
                     {user?.role === "CEO" && (
                       <div className="flex flex-wrap justify-center gap-4 mt-6">
                         {shops
@@ -322,10 +327,11 @@ export function GetChartDialog() {
                 </ChartContainer>
 
               </div>
-
             )}
             {!loading && records && records.length === 0 && (
-              <p className="text-[#b7b7b7] mt-4">No records found in this range.</p>
+              <p className="text-[#b7b7b7] mt-4">
+                No records found in this range.
+              </p>
             )}
           </div>
 
