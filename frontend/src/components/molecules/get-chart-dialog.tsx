@@ -78,7 +78,7 @@ export function GetChartDialog() {
       if (user?.role === "CEO") {
         try {
           const data = await getAllShops();
-          const filtered = data.filter((s) => s.role === "SHOP");
+          const filtered = data.filter((s) => s.role === "SHOP").sort((a, b) => a.name.localeCompare(b.name));
           setShops(filtered);
           // Default: all selected
           setSelectedShops(filtered.map((s) => s.id));
