@@ -1,15 +1,18 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { ShopRole } from '../shop.entity';
-import { IsOptional, Matches } from 'class-validator';
+import { IsOptional, IsString, IsEmail, IsEnum, Matches } from 'class-validator';
 
 export class CreateShopDto {
   @ApiProperty({ example: 'Shop 1', description: 'Name of the shop' })
+  @IsString()
   name: string;
 
   @ApiProperty({ example: 'shop1@example.com', description: 'Login email of the shop' })
+  @IsEmail()
   email: string;
 
   @ApiProperty({ example: '1111', description: 'Password for the shop' })
+  @IsString()
   password: string;
 
   @ApiProperty({
@@ -17,6 +20,7 @@ export class CreateShopDto {
     description: 'Role of the shop (default is SHOP)',
     enum: ShopRole,
   })
+  @IsEnum(ShopRole)
   role: ShopRole;
 
   @ApiProperty({ example: "17:30", description: 'Timer for the shop', required: false })

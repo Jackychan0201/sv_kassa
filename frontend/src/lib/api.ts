@@ -163,3 +163,26 @@ export const getAllShops = async (): Promise<Shop[]> => {
 
   return res.json();
 };
+
+export const createShop = async (shop: {
+  name: string;
+  email: string;
+  password: string;
+  role?: string;
+}) => {
+
+  const res = await fetch('/api/shops', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
+    body: JSON.stringify(shop),
+  });
+  
+
+  if (!res.ok) {
+    const errorData = await res.json();
+    throw new Error(errorData.message || 'Failed to create shop');
+  }
+
+  return res.json();
+};

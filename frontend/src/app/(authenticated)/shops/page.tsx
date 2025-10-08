@@ -6,6 +6,7 @@ import { Button } from "@/components/atoms/button";
 import { LoadingFallback } from "@/components/molecules/loading-fallback";
 import { useUser } from "@/components/providers/user-provider";
 import { EditShopSheet } from "@/components/organisms/edit-shop-sheet";
+import { CreateShopSheet } from "@/components/organisms/create-shop-sheet";
 
 interface Shop {
   id: string;
@@ -20,6 +21,7 @@ export default function ManageShopsPage() {
   const [loading, setLoading] = useState(true);
   const [selectedShop, setSelectedShop] = useState<Shop | null>(null);
   const [open, setOpen] = useState(false);
+  const [createOpen, setCreateOpen] = useState(false);
 
   const fetchShops = useCallback(async () => {
     if (!user || user.role !== "CEO") return;
@@ -31,9 +33,7 @@ export default function ManageShopsPage() {
 
       const data: Shop[] = await res.json();
 
-      const filtered = data.filter(
-        (shop) => shop.id !== user.shopId
-      );
+      const filtered = data.filter((shop) => shop.id !== user.shopId).sort((a, b) => a.name.localeCompare(b.name));
 
       setShops(filtered);
     } catch (err) {
@@ -59,17 +59,17 @@ export default function ManageShopsPage() {
     setShops((prev) =>
       prev.map((s) => (s.id === updatedShop.id ? updatedShop : s))
     );
-
     await fetchShops();
   };
 
   return (
     <div className="flex flex-col">
-      <Label className="text-4xl font-bold mb-2">Manage Shops</Label>
-      <Label className="text-lg mb-8">
-        View and edit shop account data below.
+      <Label className="text-3xl font-bold mb-1">Manage Shops</Label>
+      <Label className="text-lg text-[#f0f0f0] mb-6">
+        View, edit, or create shop accounts below.
       </Label>
 
+      {/* --- Shop list --- */}
       <div className="flex flex-col gap-y-3">
         {shops.map((shop) => (
           <div
@@ -79,12 +79,14 @@ export default function ManageShopsPage() {
             <div className="flex flex-col">
               <Label className="text-lg text-[#f0f0f0]">{shop.name}</Label>
               <Label className="text-sm text-[#b7b7b7]">{shop.email}</Label>
-              <Label className="text-sm text-[#8f8f8f]">Role: {shop.role}</Label>
+              <Label className="text-sm text-[#8f8f8f]">
+                Role: {shop.role}
+              </Label>
             </div>
 
             <Button
               onClick={() => handleEditClick(shop)}
-              className="transition text-[#f0f0f0] delay-50 duration-200 ease-in-out hover:-translate-y-0 hover:scale-105 hover:bg-[#414141]"
+              className="text-[#f0f0f0] hover:bg-[#414141] transition ease-in-out hover:scale-105"
             >
               Edit
             </Button>
@@ -92,11 +94,26 @@ export default function ManageShopsPage() {
         ))}
       </div>
 
+      <div className="flex flex-row mt-6 gap-x-5">
+        <Button
+          onClick={() => setCreateOpen(true)}
+          className="disabled:opacity-50 w-50 transition text-[#f0f0f0] delay-150 duration-300 ease-in-out hover:-translate-y-0 hover:scale-110 hover:bg-[#414141]"
+        >
+          Create New Shop
+        </Button>
+      </div>
+
       <EditShopSheet
         open={open}
         onOpenChange={setOpen}
         shop={selectedShop}
         onUpdate={handleUpdateShop}
+      />
+
+      <CreateShopSheet
+        open={createOpen}
+        onOpenChange={setCreateOpen}
+        onCreate={fetchShops}
       />
     </div>
   );
