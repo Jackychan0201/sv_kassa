@@ -55,3 +55,22 @@ export async function PATCH(
 
   return res;
 }
+
+
+export async function DELETE(req: NextRequest, { params }: { params: { id: string } }) {
+  const cookie = req.headers.get("cookie") ?? "";
+  const { id } = await params;
+
+  const response = await fetch(`http://localhost:3000/shops/${id}`, {
+    method: "DELETE",
+    headers: { "Content-Type": "application/json", cookie },
+    credentials: "include",
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json();
+    return NextResponse.json({ message: errorData.message || "Failed to delete shop" }, { status: response.status });
+  }
+
+  return NextResponse.json({ message: `Shop ${id} deleted successfully` }, { status: 200 });
+}

@@ -186,3 +186,18 @@ export const createShop = async (shop: {
 
   return res.json();
 };
+
+export const deleteShop = async (shopId: string) => {
+  const res = await fetch(`/api/shops/${shopId}`, {
+    method: 'DELETE',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
+  });
+
+  if (!res.ok) {
+    const errorData = await res.json();
+    throw new Error(errorData.message || 'Failed to delete shop');
+  }
+
+  return res.json();
+};

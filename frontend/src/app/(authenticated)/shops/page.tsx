@@ -7,6 +7,7 @@ import { LoadingFallback } from "@/components/molecules/loading-fallback";
 import { useUser } from "@/components/providers/user-provider";
 import { EditShopSheet } from "@/components/organisms/edit-shop-sheet";
 import { CreateShopSheet } from "@/components/organisms/create-shop-sheet";
+import { DeleteShopDialog } from "@/components/molecules/delete-shop-dialog";
 
 interface Shop {
   id: string;
@@ -32,9 +33,9 @@ export default function ManageShopsPage() {
       if (!res.ok) throw new Error("Failed to fetch shops");
 
       const data: Shop[] = await res.json();
-
-      const filtered = data.filter((shop) => shop.id !== user.shopId).sort((a, b) => a.name.localeCompare(b.name));
-
+      const filtered = data
+        .filter((shop) => shop.id !== user.shopId)
+        .sort((a, b) => a.name.localeCompare(b.name));
       setShops(filtered);
     } catch (err) {
       console.error(err);
@@ -69,7 +70,6 @@ export default function ManageShopsPage() {
         View, edit, or create shop accounts below.
       </Label>
 
-      {/* --- Shop list --- */}
       <div className="flex flex-col gap-y-3">
         {shops.map((shop) => (
           <div
@@ -84,12 +84,24 @@ export default function ManageShopsPage() {
               </Label>
             </div>
 
-            <Button
-              onClick={() => handleEditClick(shop)}
-              className="text-[#f0f0f0] hover:bg-[#414141] transition ease-in-out hover:scale-105"
-            >
-              Edit
-            </Button>
+            <div className="flex flex-row gap-x-4">
+              <Button
+                onClick={() => handleEditClick(shop)}
+                className="text-[#f0f0f0] hover:bg-[#414141] transition ease-in-out hover:scale-105"
+              >
+                Edit
+              </Button>
+
+              <DeleteShopDialog
+                shop={shop}
+                onDeleted={fetchShops}
+                trigger={
+                  <Button className="transition text-[#f0f0f0] delay-50 duration-200 ease-in-out hover:-translate-y-0 hover:scale-105 hover:bg-[#ff4d4d]">
+                    Delete
+                  </Button>
+                }
+              />
+            </div>
           </div>
         ))}
       </div>
