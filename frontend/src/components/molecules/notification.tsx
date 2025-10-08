@@ -33,7 +33,7 @@ export function TimerNotification({ time }: TimerNotificationProps) {
       const delay = target.getTime() - now.getTime();
 
       timeoutRef.current = setTimeout(() => {
-        new Notification("Push Notification", {
+        new Notification("SV Kassa notification", {
           body: `It's ${time} now: close the day!`,
         });
       }, delay);

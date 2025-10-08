@@ -49,7 +49,7 @@ export function GetTableDialog() {
       if (user?.role === "CEO") {
         try {
           const allShops = await getAllShops();
-          setShops(allShops.filter((s) => s.role === "SHOP"));
+          setShops(allShops.filter((s) => s.role === "SHOP").sort((a, b) => a.name.localeCompare(b.name)));
         } catch (err) {
           console.error("Failed to fetch shops:", err);
         }

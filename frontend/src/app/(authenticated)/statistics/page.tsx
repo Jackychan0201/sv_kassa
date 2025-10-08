@@ -233,8 +233,6 @@ export default function StatisticsPage() {
   };
 
   const compareMetric = (fullAvg: number, noTodayAvg: number) => {
-    console.log('today: ', fullAvg, ' yesterday: ', noTodayAvg);
-    console.log(fullAvg >= noTodayAvg);
     return fullAvg >= noTodayAvg;
   }
 
