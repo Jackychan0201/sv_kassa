@@ -23,9 +23,8 @@ export default function DashboardPage() {
   const [allRecords, setAllRecords] = useState<DailyRecord[] | null>(null);
   const [shops, setShops] = useState<Shop[]>([]);
   const [notClosedShopNames, setNotClosedShopNames] = useState<string[]>([]);
-  const [selectedShopId, setSelectedShopId] = useState<string>("ALL"); // ALL selected by default
+  const [selectedShopId, setSelectedShopId] = useState<string>("ALL"); 
 
-  // Load today's records
   const loadRecord = async () => {
     try {
       const data = await getRecordByDate(formattedDate);
@@ -40,7 +39,6 @@ export default function DashboardPage() {
     }
   };
 
-  // Load shops for CEO
   const loadShops = async () => {
     if (user?.role === "CEO") {
       try {
@@ -52,7 +50,6 @@ export default function DashboardPage() {
     }
   };
 
-  // Compute shops that haven't closed yet (CEO only)
   const resolveNotClosedShops = async () => {
     if (user?.role !== "CEO" || !allRecords || shops.length === 0) return;
 
@@ -95,7 +92,6 @@ export default function DashboardPage() {
     return <LoadingFallback message="Loading records..." />;
   }
 
-  // --- Filtered records according to selected shop ---
   let filteredRecords: DailyRecord[] = [];
   if (user.role === "SHOP") {
     filteredRecords = record;
@@ -107,7 +103,6 @@ export default function DashboardPage() {
     }
   }
 
-  // --- Compute record data ---
   let recordData: (number | null)[] = [];
   if (filteredRecords.length === 0) {
     recordData = [null, null, null, null, null, null];
@@ -134,7 +129,6 @@ export default function DashboardPage() {
     ];
   }
 
-  // --- RBAC label logic ---
   let dayStatusLabel = "";
   let dayStatusColor = "";
 
@@ -157,7 +151,6 @@ export default function DashboardPage() {
     }
   }
 
-  // --- Disable logic for CloseDaySheet ---
   const closeDayDisabled =
     user.role === "SHOP"
       ? recordData[0] !== null

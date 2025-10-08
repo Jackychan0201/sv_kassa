@@ -32,7 +32,6 @@ export function EditDayDialog({ onSaved }: EditDayDialogProps) {
   const [openSheet, setOpenSheet] = useState(false);
   const [open, setOpen] = useState(false);
 
-  // Load all shops (CEO only) or current shop (SHOP user)
   useEffect(() => {
     const loadShops = async () => {
       if (!user) return;
@@ -50,7 +49,6 @@ export function EditDayDialog({ onSaved }: EditDayDialogProps) {
     loadShops();
   }, [user]);
 
-  // Handle dialog open/close
   const handleOpenChange = (isOpen: boolean) => {
     setOpen(isOpen);
     if (!isOpen && !openSheet) {
@@ -59,7 +57,6 @@ export function EditDayDialog({ onSaved }: EditDayDialogProps) {
     }
   };
 
-  // Handle Go button
   const handleGo = () => {
     if (!selectedDate) {
       toast.error("Please select a date first");

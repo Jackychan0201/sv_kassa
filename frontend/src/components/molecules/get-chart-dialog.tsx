@@ -80,7 +80,6 @@ export function GetChartDialog() {
           const data = await getAllShops();
           const filtered = data.filter((s) => s.role === "SHOP").sort((a, b) => a.name.localeCompare(b.name));
           setShops(filtered);
-          // Default: all selected
           setSelectedShops(filtered.map((s) => s.id));
           setSelectAll(true);
         } catch (err) {
@@ -153,12 +152,10 @@ export function GetChartDialog() {
 
   const selectedOption = chartOptions.find((opt) => opt.key === selectedMetric);
 
-  // ✅ Build dataset properly based on role
   let mergedData: any[] = [];
 
   if (records && selectedMetric) {
     if (user?.role === "CEO") {
-      // Merge per shop per day
       mergedData = Object.values(
         records.reduce((acc, rec) => {
           if (!acc[rec.recordDate]) acc[rec.recordDate] = { recordDate: rec.recordDate };
@@ -168,7 +165,6 @@ export function GetChartDialog() {
         }, {} as Record<string, Record<string, any>>)
       );
     } else {
-      // Simple array for SHOP
       mergedData = records.map((rec) => ({
         recordDate: rec.recordDate,
         [selectedMetric]: rec[selectedMetric as keyof DailyRecord] ?? 0,

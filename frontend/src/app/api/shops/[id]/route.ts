@@ -11,7 +11,7 @@ export async function GET(
     method: "GET",
     headers: {
       "Content-Type": "application/json",
-      cookie, // pass JWT to backend
+      cookie,
     },
   });
 
@@ -31,7 +31,7 @@ export async function PATCH(
     method: "PATCH",
     headers: {
       "Content-Type": "application/json",
-      cookie, // pass current JWT
+      cookie,
     },
     body: JSON.stringify(body),
   });
@@ -39,7 +39,6 @@ export async function PATCH(
   const data = await response.json();
   const res = NextResponse.json(data, { status: response.status });
 
-  // If backend set a new cookie, propagate it to client
   const setCookie = response.headers.get("set-cookie");
   if (setCookie) {
     const cookies = setCookie.split(";").map((c) => c.trim());

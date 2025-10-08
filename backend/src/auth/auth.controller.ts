@@ -46,10 +46,10 @@ export class AuthController {
   @Get('me')
   @UseGuards(JwtAuthGuard)
   getProfile(@Req() req) {
-    const user = req.user; // This comes from JWT payload
+    const user = req.user;
     return {
       id: user.id,
-      shopId: user.shopId, // ✅ Make sure this exists
+      shopId: user.shopId,
       name: user.name,
       email: user.email,
       role: user.role,

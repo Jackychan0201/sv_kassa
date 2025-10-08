@@ -55,14 +55,11 @@ export default function ManageShopsPage() {
     setOpen(true);
   };
 
-  // ✅ After updating, refresh the list
   const handleUpdateShop = async (updatedShop: Shop) => {
-    // update locally for instant feedback
     setShops((prev) =>
       prev.map((s) => (s.id === updatedShop.id ? updatedShop : s))
     );
 
-    // refetch to ensure data consistency
     await fetchShops();
   };
 

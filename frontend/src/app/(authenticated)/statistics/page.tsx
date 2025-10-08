@@ -31,7 +31,6 @@ export default function StatisticsPage() {
     return `${day}.${month}.${year}`;
   }
 
-  // --- Load records ---
   useEffect(() => {
     async function loadRecords() {
       try {
@@ -48,12 +47,10 @@ export default function StatisticsPage() {
           const records = await getRecordsByRange(fromDateStr, toDateStr);
           setDailyRecords(records);
         } else if (user.role === "CEO") {
-          // Fetch all shops and all records
           const allShops = await getAllShops();
           setShops(allShops.filter((s) => s.role === "SHOP"));
 
           const records = await getRecordsByRange(fromDateStr, toDateStr); 
-          // For simplicity, fetch all records. You could also call a dedicated API for all shops
           setAllRecords(records);
         }
       } catch (err: any) {
@@ -68,7 +65,6 @@ export default function StatisticsPage() {
   if (!dailyRecords && user.role === "SHOP") return <LoadingFallback message="Loading records..." />;
   if (!allRecords && user.role === "CEO") return <LoadingFallback message="Loading records for all shops..." />;
 
-  // --- Choose records based on role & selection ---
   let recordsToUse: DailyRecord[] = [];
   if (user.role === "SHOP") {
     recordsToUse = dailyRecords!;
@@ -84,7 +80,6 @@ export default function StatisticsPage() {
     return <Label>No records found in the selected date range.</Label>;
   }
 
-  // --- KPI Calculations ---
   const calculateGMROI = (records: DailyRecord[]) => {
     const validRecords = records.filter(r => r.mainStockValue + r.orderStockValue > 0);
     if (!validRecords.length) return 0;
@@ -162,7 +157,6 @@ export default function StatisticsPage() {
   const inventoryTurnover = calculateInventoryTurnover(recordsToUse);
   const overallMargin = calculateOverallMarginPercentage(recordsToUse);
 
-  // --- Stats calculations ---
   const calcStats = (values: number[]) => ({
     max: Math.max(...values),
     min: Math.min(...values),
@@ -193,7 +187,6 @@ export default function StatisticsPage() {
     avgStock: calcStats(orderStockValues),
   };
 
-  // --- Advice logic (same as your original code) ---
   const adviceList: string[] = [];
   if (gmroi < 1.0) adviceList.push(`GMROI: Critical (Current: ${gmroi.toFixed(2)}). Losing money on inventory.`);
   else if (gmroi < 2.0) adviceList.push(`GMROI: Warning (Current: ${gmroi.toFixed(2)}). Consider markdown strategies.`);

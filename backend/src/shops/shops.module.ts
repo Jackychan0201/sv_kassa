@@ -8,7 +8,7 @@ import { AuthModule } from '../auth/auth.module';
 @Module({
   imports: [
     TypeOrmModule.forFeature([Shop]),
-    forwardRef(() => AuthModule), // ✅ forwardRef here too
+    forwardRef(() => AuthModule),
   ],
   providers: [ShopsService],
   controllers: [ShopsController],

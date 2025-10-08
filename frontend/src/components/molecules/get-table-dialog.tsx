@@ -44,7 +44,6 @@ export function GetTableDialog() {
   const [shops, setShops] = useState<Shop[]>([]);
   const [selectedShop, setSelectedShop] = useState<string>("ALL");
 
-  // Load shops (only for CEO)
   useEffect(() => {
     const fetchShops = async () => {
       if (user?.role === "CEO") {

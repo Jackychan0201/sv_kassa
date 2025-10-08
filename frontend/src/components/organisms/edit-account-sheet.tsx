@@ -16,7 +16,7 @@ interface EditAccountSheetProps {
 export function EditAccountSheet({ open, onOpenChange }: EditAccountSheetProps) {
   const { user, setUser } = useUser();
 
-  if (!user) return null; // prevent render if no user context
+  if (!user) return null;
 
   const [name, setName] = useState(user.name);
   const [email, setEmail] = useState(user.email);
@@ -67,7 +67,6 @@ export function EditAccountSheet({ open, onOpenChange }: EditAccountSheetProps) 
 
       const updated = await res.json();
 
-      // Update global user context
       setUser({ ...user, ...updated });
 
       toast.success("Account updated successfully!");

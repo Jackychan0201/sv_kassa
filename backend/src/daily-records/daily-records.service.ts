@@ -142,7 +142,6 @@ export class DailyRecordsService {
     let records: DailyRecord[];
 
     if (user.role === ShopRole.CEO && !shopId) {
-      // CEO fetching all records
       records = await this.dailyRecordRepo.find({
         relations: [],
         order: { createdAt: 'ASC' },
@@ -159,7 +158,6 @@ export class DailyRecordsService {
       });
     }
 
-    // Format recordDate for all records
     for (const record of records) {
       const [year, month, day] = record.recordDate.split('-');
       record.recordDate = `${day}.${month}.${year}`;

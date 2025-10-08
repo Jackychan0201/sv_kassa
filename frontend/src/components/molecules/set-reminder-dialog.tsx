@@ -25,13 +25,11 @@ interface SetReminderDialogProps {
 export function SetReminderDialog({ onSaved }: SetReminderDialogProps) {
   const { user, setTimer } = useUser();
 
-  if (!user) return null; // Guard against null user
+  if (!user) return null;
 
-  // Initialize selectedTime from context
   const [selectedTime, setSelectedTime] = useState<string>(user.timer ?? "00:00");
   const [open, setOpen] = useState(false);
 
-  // Sync local state with context when user.timer changes
   useEffect(() => {
     setSelectedTime(user.timer ?? "00:00");
   }, [user.timer]);
@@ -44,7 +42,7 @@ export function SetReminderDialog({ onSaved }: SetReminderDialogProps) {
 
     try {
       await saveReminderTime(user.shopId, "00:00");
-      setTimer("00:00"); // update context
+      setTimer("00:00");
       toast.info("Timer is reset!");
     } catch (err: any) {
       toast.error(err.message || "Failed to reset reminder");
@@ -57,7 +55,7 @@ export function SetReminderDialog({ onSaved }: SetReminderDialogProps) {
     try {
       const timeToSave = selectedTime ?? "00:00";
       await saveReminderTime(user.shopId, timeToSave);
-      setTimer(timeToSave); // update context
+      setTimer(timeToSave);
       toast.success(`The timer is set to ${timeToSave}`);
     } catch (err: any) {
       toast.error(err.message || "Failed to save reminder");

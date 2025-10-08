@@ -58,7 +58,6 @@ export class ShopsService {
     const updatedShop = await this.shopRepository.save(shop);
     const { password, ...result } = updatedShop;
 
-    // Reissue JWT if the updated shop is the logged-in user
     let token: string | undefined;
     if (user.shopId === updatedShop.id) {
       const payload = {
