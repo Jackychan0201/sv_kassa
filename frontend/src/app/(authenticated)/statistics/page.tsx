@@ -48,7 +48,7 @@ export default function StatisticsPage() {
           setDailyRecords(records);
         } else if (user.role === "CEO") {
           const allShops = await getAllShops();
-          setShops(allShops.filter((s) => s.role === "SHOP"));
+          setShops(allShops.filter((s) => s.role === "SHOP").sort((a, b) => a.name.localeCompare(b.name)));
 
           const records = await getRecordsByRange(fromDateStr, toDateStr); 
           setAllRecords(records);
@@ -215,6 +215,29 @@ export default function StatisticsPage() {
   else if (overallMargin < 50) adviceList.push(`Overall Margin: Good (Current: ${overallMargin.toFixed(2)}%).`);
   else adviceList.push(`Overall Margin: Excellent (Current: ${overallMargin.toFixed(2)}%).`);
 
+
+  const recordsWithoutToday = [...recordsToUse].slice(0, -1);
+
+  const mainStatsWithoutToday = {
+    revenueWithMargin: calcStats(recordsWithoutToday.map(r => r.revenueMainWithMargin)),
+    revenueWithoutMargin: calcStats(recordsWithoutToday.map(r => r.revenueMainWithoutMargin)),
+    margin: calcStats(recordsWithoutToday.map(r => r.revenueMainWithMargin - r.revenueMainWithoutMargin)),
+        avgStock: calcStats(recordsWithoutToday.map(r => r.mainStockValue)),
+  };
+
+  const orderStatsWithoutToday = {
+    revenueWithMargin: calcStats(recordsWithoutToday.map(r => r.revenueOrderWithMargin)),
+    revenueWithoutMargin: calcStats(recordsWithoutToday.map(r => r.revenueOrderWithoutMargin)),
+    margin: calcStats(recordsWithoutToday.map(r => r.revenueOrderWithMargin - r.revenueOrderWithoutMargin)),
+    avgStock: calcStats(recordsWithoutToday.map(r => r.orderStockValue)),
+  };
+
+  const compareMetric = (fullAvg: number, noTodayAvg: number) => {
+    console.log('today: ', fullAvg, ' yesterday: ', noTodayAvg);
+    console.log(fullAvg >= noTodayAvg);
+    return fullAvg >= noTodayAvg;
+  }
+
   return (
     <div className="flex flex-col">
       <Label className="text-3xl font-bold mb-1">Statistics</Label>
@@ -246,24 +269,153 @@ export default function StatisticsPage() {
           <div className="w-[40vw] overflow-y-auto">
             <Accordion type="single" collapsible className="w-full">
               <AccordionItem value="main">
-                <AccordionTrigger className="text-lg w-full text-left">Main Storage Stats</AccordionTrigger>
+                <AccordionTrigger className="text-lg w-full text-left">
+                  Main Storage Stats
+                </AccordionTrigger>
                 <AccordionContent className="flex flex-col gap-1 w-full">
-                  <Label>Revenue With Margin - Max: {mainStats.revenueWithMargin.max.toFixed(2)}, Min: {mainStats.revenueWithMargin.min.toFixed(2)}, Avg: {mainStats.revenueWithMargin.avg.toFixed(2)}</Label>
-                  <Label>Revenue Without Margin - Max: {mainStats.revenueWithoutMargin.max.toFixed(2)}, Min: {mainStats.revenueWithoutMargin.min.toFixed(2)}, Avg: {mainStats.revenueWithoutMargin.avg.toFixed(2)}</Label>
-                  <Label>Margin - Max: {mainStats.margin.max.toFixed(2)}, Min: {mainStats.margin.min.toFixed(2)}, Avg: {mainStats.margin.avg.toFixed(2)}</Label>
-                  <Label>Average Stock Value: {mainStats.avgStock.avg.toFixed(2)}</Label>
+                  <Label>
+                    Revenue With Margin - Max: {mainStats.revenueWithMargin.max.toFixed(2)}, Min:{" "}
+                    {mainStats.revenueWithMargin.min.toFixed(2)}, Avg:{" "}
+                    <span
+                      className={
+                        compareMetric(
+                          mainStats.revenueWithMargin.avg,
+                          mainStatsWithoutToday.revenueWithMargin.avg
+                        )
+                          ? "text-green-500"
+                          : "text-red-500"
+                      }
+                    >
+                      {mainStats.revenueWithMargin.avg.toFixed(2)}
+                    </span>
+                  </Label>
+
+                  <Label>
+                    Revenue Without Margin - Max: {mainStats.revenueWithoutMargin.max.toFixed(2)}, Min:{" "}
+                    {mainStats.revenueWithoutMargin.min.toFixed(2)}, Avg:{" "}
+                    <span
+                      className={
+                        compareMetric(
+                          mainStats.revenueWithoutMargin.avg,
+                          mainStatsWithoutToday.revenueWithoutMargin.avg
+                        )
+                          ? "text-green-500"
+                          : "text-red-500"
+                      }
+                    >
+                      {mainStats.revenueWithoutMargin.avg.toFixed(2)}
+                    </span>
+                  </Label>
+
+                  <Label>
+                    Margin - Max: {mainStats.margin.max.toFixed(2)}, Min:{" "}
+                    {mainStats.margin.min.toFixed(2)}, Avg:{" "}
+                    <span
+                      className={
+                        compareMetric(
+                          mainStats.margin.avg,
+                          mainStatsWithoutToday.margin.avg
+                        )
+                          ? "text-green-500"
+                          : "text-red-500"
+                      }
+                    >
+                      {mainStats.margin.avg.toFixed(2)}
+                    </span>
+                  </Label>
+
+                  <Label>
+                    Average Stock Value:{" "}
+                    <span
+                      className={
+                        compareMetric(
+                          mainStats.avgStock.avg,
+                          mainStatsWithoutToday.avgStock.avg
+                        )
+                          ? "text-green-500"
+                          : "text-red-500"
+                      }
+                    >
+                      {mainStats.avgStock.avg.toFixed(2)}
+                    </span>
+                  </Label>
                 </AccordionContent>
               </AccordionItem>
 
               <AccordionItem value="order">
-                <AccordionTrigger className="text-lg w-full text-left">Order Storage Stats</AccordionTrigger>
+                <AccordionTrigger className="text-lg w-full text-left">
+                  Order Storage Stats
+                </AccordionTrigger>
                 <AccordionContent className="flex flex-col gap-1 w-full">
-                  <Label>Revenue With Margin - Max: {orderStats.revenueWithMargin.max.toFixed(2)}, Min: {orderStats.revenueWithMargin.min.toFixed(2)}, Avg: {orderStats.revenueWithMargin.avg.toFixed(2)}</Label>
-                  <Label>Revenue Without Margin - Max: {orderStats.revenueWithoutMargin.max.toFixed(2)}, Min: {orderStats.revenueWithoutMargin.min.toFixed(2)}, Avg: {orderStats.revenueWithoutMargin.avg.toFixed(2)}</Label>
-                  <Label>Margin - Max: {orderStats.margin.max.toFixed(2)}, Min: {orderStats.margin.min.toFixed(2)}, Avg: {orderStats.margin.avg.toFixed(2)}</Label>
-                  <Label>Average Stock Value: {orderStats.avgStock.avg.toFixed(2)}</Label>
+                  <Label>
+                    Revenue With Margin - Max: {orderStats.revenueWithMargin.max.toFixed(2)}, Min:{" "}
+                    {orderStats.revenueWithMargin.min.toFixed(2)}, Avg:{" "}
+                    <span
+                      className={
+                        compareMetric(
+                          orderStats.revenueWithMargin.avg,
+                          orderStatsWithoutToday.revenueWithMargin.avg
+                        )
+                          ? "text-green-500"
+                          : "text-red-500"
+                      }
+                    >
+                      {orderStats.revenueWithMargin.avg.toFixed(2)}
+                    </span>
+                  </Label>
+
+                  <Label>
+                    Revenue Without Margin - Max: {orderStats.revenueWithoutMargin.max.toFixed(2)}, Min:{" "}
+                    {orderStats.revenueWithoutMargin.min.toFixed(2)}, Avg:{" "}
+                    <span
+                      className={
+                        compareMetric(
+                          orderStats.revenueWithoutMargin.avg,
+                          orderStatsWithoutToday.revenueWithoutMargin.avg
+                        )
+                          ? "text-green-500"
+                          : "text-red-500"
+                      }
+                    >
+                      {orderStats.revenueWithoutMargin.avg.toFixed(2)}
+                    </span>
+                  </Label>
+
+                  <Label>
+                    Margin - Max: {orderStats.margin.max.toFixed(2)}, Min:{" "}
+                    {orderStats.margin.min.toFixed(2)}, Avg:{" "}
+                    <span
+                      className={
+                        compareMetric(
+                          orderStats.margin.avg,
+                          orderStatsWithoutToday.margin.avg
+                        )
+                          ? "text-green-500"
+                          : "text-red-500"
+                      }
+                    >
+                      {orderStats.margin.avg.toFixed(2)}
+                    </span>
+                  </Label>
+
+                  <Label>
+                    Average Stock Value:{" "}
+                    <span
+                      className={
+                        compareMetric(
+                          orderStats.avgStock.avg,
+                          orderStatsWithoutToday.avgStock.avg
+                        )
+                          ? "text-green-500"
+                          : "text-red-500"
+                      }
+                    >
+                      {orderStats.avgStock.avg.toFixed(2)}
+                    </span>
+                  </Label>
                 </AccordionContent>
               </AccordionItem>
+
             </Accordion>
           </div>
 
