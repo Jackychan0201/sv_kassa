@@ -18,7 +18,13 @@ import { toast } from "sonner";
 import { useUser } from "../providers/user-provider";
 import { getAllShops } from "@/lib/api";
 import { Shop } from "@/lib/types";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/atoms/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/atoms/select";
 
 interface EditDayDialogProps {
   onSaved?: () => void;
@@ -35,17 +41,29 @@ export function EditDayDialog({ onSaved }: EditDayDialogProps) {
   useEffect(() => {
     const loadShops = async () => {
       if (!user) return;
+
       if (user.role === "CEO") {
         try {
           const allShops = await getAllShops();
-          setShops(allShops.filter((s) => s.role === "SHOP").sort((a, b) => a.name.localeCompare(b.name)));
+          setShops(
+            allShops
+              .filter((s) => s.role === "SHOP")
+              .sort((a, b) => a.name.localeCompare(b.name))
+          );
         } catch (err) {
           console.error("Failed to load shops", err);
         }
       } else if (user.role === "SHOP" && user.shopId) {
-        setShops([{ id: user.shopId, name: user.name || "My Shop", role: "SHOP" }]);
+        const shopData = {
+          id: user.shopId,
+          name: user.name || "My Shop",
+          role: "SHOP",
+        };
+        setShops([shopData]);
+        setSelectedShop(shopData);
       }
     };
+
     loadShops();
   }, [user]);
 
@@ -53,7 +71,9 @@ export function EditDayDialog({ onSaved }: EditDayDialogProps) {
     setOpen(isOpen);
     if (!isOpen && !openSheet) {
       setSelectedDate(null);
-      setSelectedShop(null);
+      if (user?.role === "CEO") {
+        setSelectedShop(null);
+      }
     }
   };
 
@@ -90,12 +110,15 @@ export function EditDayDialog({ onSaved }: EditDayDialogProps) {
 
             <DatePicker title="Date" value={selectedDate} onChange={setSelectedDate} />
 
-            {selectedDate && shops.length > 0 && (
+            {/* Show the Select only if user is CEO */}
+            {selectedDate && user?.role === "CEO" && shops.length > 0 && (
               <div className="mt-4">
                 <p className="text-sm mb-1 text-[#f0f0f0]">Select shop</p>
                 <Select
                   value={selectedShop?.id ?? undefined}
-                  onValueChange={(val) => setSelectedShop(shops.find((s) => s.id === val) || null)}
+                  onValueChange={(val) =>
+                    setSelectedShop(shops.find((s) => s.id === val) || null)
+                  }
                 >
                   <SelectTrigger className="w-48 justify-between bg-[#171717] border-0 text-[#f0f0f0] hover:bg-[#414141] hover:text-[#f0f0f0]">
                     <SelectValue placeholder="Select shop" />
@@ -131,14 +154,16 @@ export function EditDayDialog({ onSaved }: EditDayDialogProps) {
 
       {openSheet && selectedDate && selectedShop && (
         <EditDaySheet
-          formattedDate={`${selectedDate.getDate().toString().padStart(2,"0")}.${
-            (selectedDate.getMonth()+1).toString().padStart(2,"0")
+          formattedDate={`${selectedDate.getDate().toString().padStart(2, "0")}.${
+            (selectedDate.getMonth() + 1).toString().padStart(2, "0")
           }.${selectedDate.getFullYear()}`}
           open={openSheet}
           onClose={() => {
             setOpenSheet(false);
             setSelectedDate(null);
-            setSelectedShop(null);
+            if (user?.role === "CEO") {
+              setSelectedShop(null);
+            }
           }}
           shopId={selectedShop.id}
           onSaved={onSaved}
